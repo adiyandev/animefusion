@@ -19,7 +19,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
           app = Path('src/App.jsx')
           text = app.read_text()
@@ -57,7 +56,7 @@ jobs:
 
       - name: Verify build
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Commit repair
