@@ -1,0 +1,202 @@
+/* AnimeFusion motion layer — keeps the existing palette/content while adding a smoother product UI feel. */
+
+:root {
+  --af-motion-fast: 180ms;
+  --af-motion: 420ms;
+  --af-motion-slow: 700ms;
+  --af-ease: cubic-bezier(.22, 1, .36, 1);
+  --af-ease-soft: cubic-bezier(.16, 1, .3, 1);
+}
+
+@keyframes afFadeUp {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes afFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes afScaleIn {
+  from { opacity: 0; transform: scale(.975); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes afShimmer {
+  0% { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+
+@keyframes afFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes afPulse {
+  0%, 100% { opacity: .52; }
+  50% { opacity: .9; }
+}
+
+/* Route/page entrance without changing the site's information or colors. */
+main,
+.page,
+.auth-page {
+  animation: afFadeIn var(--af-motion) var(--af-ease) both;
+}
+
+.hero-copy > *,
+.page-hero > *,
+.section-heading > *,
+.intro-grid > *,
+.architecture-head > *,
+.process-copy > * {
+  animation: afFadeUp var(--af-motion-slow) var(--af-ease) both;
+}
+
+.hero-copy > *:nth-child(2) { animation-delay: 45ms; }
+.hero-copy > *:nth-child(3) { animation-delay: 90ms; }
+.hero-copy > *:nth-child(4) { animation-delay: 135ms; }
+.hero-copy > *:nth-child(5) { animation-delay: 180ms; }
+
+.page-hero > *:nth-child(2) { animation-delay: 60ms; }
+.page-hero > *:nth-child(3) { animation-delay: 110ms; }
+
+.hero-visual,
+.browser-window,
+.auth-card,
+.future-market,
+.cta-inner {
+  animation: afScaleIn var(--af-motion-slow) var(--af-ease) both;
+}
+
+.hero-visual { animation-delay: 90ms; }
+
+/* Dhru-inspired polished card motion: restrained lift, image zoom and depth. */
+.feature-card,
+.feature-page-card,
+.market-card,
+.architecture-card,
+.step,
+.faq-list details,
+.example-note,
+.browser-window {
+  will-change: transform;
+}
+
+.feature-card,
+.feature-page-card,
+.market-card,
+.architecture-card {
+  transition:
+    transform var(--af-motion) var(--af-ease),
+    box-shadow var(--af-motion) var(--af-ease),
+    border-color var(--af-motion-fast) ease;
+}
+
+.feature-card:hover,
+.feature-page-card:hover,
+.architecture-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 24px 60px rgba(17, 17, 17, .075);
+}
+
+.market-card:hover .market-preview {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 55px rgba(17, 17, 17, .10);
+}
+
+.market-preview {
+  transition: transform var(--af-motion) var(--af-ease), box-shadow var(--af-motion) var(--af-ease);
+}
+
+.market-art i:nth-child(1) { animation: afFloat 5s ease-in-out infinite; }
+.market-art i:nth-child(2) { animation: afFloat 5.8s ease-in-out infinite reverse; }
+.market-art i:nth-child(3) { animation: afFloat 4.6s ease-in-out infinite; animation-delay: -1.2s; }
+
+/* Loading-style placeholders: intentionally neutral so they inherit the existing palette. */
+.demo-posters i,
+.browser-dots i,
+.demo-art i,
+.demo-art b,
+.demo-art span {
+  background-image: linear-gradient(105deg, transparent 20%, rgba(255,255,255,.18) 45%, transparent 70%);
+  background-size: 240% 100%;
+  animation: afShimmer 2.8s ease-in-out infinite;
+}
+
+.demo-posters i:nth-child(2) { animation-delay: 120ms; }
+.demo-posters i:nth-child(3) { animation-delay: 240ms; }
+.demo-posters i:nth-child(4) { animation-delay: 360ms; }
+.demo-posters i:nth-child(5) { animation-delay: 480ms; }
+
+/* Reusable skeleton utility for future data-driven catalogue screens. */
+.af-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e8e8e4;
+  border-radius: 12px;
+}
+
+.af-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  animation: afShimmer 1.5s infinite;
+}
+
+/* Navigation feels responsive without becoming flashy. */
+.nav-links a,
+.login-link,
+.brand,
+.market-actions a,
+.text-link,
+.section-link,
+.footer-links a {
+  transition: color var(--af-motion-fast) ease, transform var(--af-motion-fast) var(--af-ease);
+}
+
+.nav-links a:hover,
+.login-link:hover,
+.footer-links a:hover {
+  transform: translateY(-1px);
+}
+
+.logo-mark {
+  transition: transform var(--af-motion) var(--af-ease), box-shadow var(--af-motion) var(--af-ease);
+}
+
+.brand:hover .logo-mark {
+  transform: rotate(-4deg) scale(1.06);
+  box-shadow: 0 9px 22px rgba(17,17,17,.16);
+}
+
+.button {
+  transition:
+    transform var(--af-motion) var(--af-ease),
+    box-shadow var(--af-motion) var(--af-ease),
+    background var(--af-motion-fast) ease,
+    border-color var(--af-motion-fast) ease;
+}
+
+.button:active {
+  transform: translateY(1px) scale(.985);
+}
+
+/* FAQ expansion feels deliberate rather than snapping open. */
+.faq-list details p {
+  animation: afFadeUp 300ms var(--af-ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}
