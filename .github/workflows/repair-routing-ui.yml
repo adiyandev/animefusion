@@ -1,0 +1,74 @@
+name: Repair routing and UI
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ !contains(github.event.head_commit.message, '[routing-repair]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch base-path routing and load UI repair CSS
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          app = Path('src/App.jsx')
+          text = app.read_text()
+
+          old_go = "function go(path){window.history.pushState({},'',path);window.dispatchEvent(new PopStateEvent('popstate'));window.scrollTo({top:0,behavior:'instant'})}"
+          new_go = "const BASE_PATH='/animefusion';\nfunction routePath(path){if(!path.startsWith('/')) return path; return `${BASE_PATH}${path==='/'?'':path}`||BASE_PATH;}\nfunction currentRoute(){const pathname=window.location.pathname.replace(/\\/$/,'')||'/'; if(pathname===BASE_PATH) return '/'; if(pathname.startsWith(BASE_PATH+'/')) return pathname.slice(BASE_PATH.length)||'/'; return pathname;}\nfunction go(path){window.history.pushState({},'',routePath(path));window.dispatchEvent(new PopStateEvent('popstate'));window.scrollTo({top:0,behavior:'instant'})}"
+          if old_go not in text:
+              raise SystemExit('go() pattern not found')
+          text = text.replace(old_go, new_go, 1)
+
+          old_app = "function App(){const [path,setPath]=useState(window.location.pathname.replace(/\\/$/,'')||'/');useEffect(()=>{const handler=()=>setPath(window.location.pathname.replace(/\\/$/,'')||'/');"
+          new_app = "function App(){const [path,setPath]=useState(currentRoute());useEffect(()=>{const handler=()=>setPath(currentRoute());"
+          if old_app not in text:
+              raise SystemExit('App routing pattern not found')
+          text = text.replace(old_app, new_app, 1)
+
+          for path in ['/', '/templates', '/features', '/signin', '/signup']:
+              text = text.replace(f'href="{path}"', f'href={{routePath(\'{path}\')}}')
+
+          old_button = "function Button({children,href='/',light=false}){return <a className={`button ${light?'button-light':'button-dark'}`} href={href} onClick={e=>{if(href.startsWith('/')){e.preventDefault();go(href)}}}>{children}<span>↗</span></a>}"
+          new_button = "function Button({children,href='/',light=false}){const target=href.startsWith('/')?routePath(href):href;return <a className={`button ${light?'button-light':'button-dark'}`} href={target} onClick={e=>{if(href.startsWith('/')){e.preventDefault();go(href)}}}>{children}<span>↗</span></a>}"
+          if old_button not in text:
+              raise SystemExit('Button pattern not found')
+          text = text.replace(old_button, new_button, 1)
+
+          text = text.replace("href={signup?'/signin':'/signup'}", "href={routePath(signup?'/signin':'/signup')}")
+          app.write_text(text)
+
+          main = Path('src/main.jsx')
+          m = main.read_text()
+          if "./ui-repair.css" not in m:
+              m = m.replace("import './feature-upgrade.css';", "import './feature-upgrade.css';\nimport './ui-repair.css';")
+              main.write_text(m)
+          PY
+
+      - name: Verify build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit repair
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.jsx src/main.jsx
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git commit -m "fix routing and stabilize UI [routing-repair]"
+          git push
