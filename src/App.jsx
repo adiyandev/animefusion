@@ -1,146 +1,63 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const templates = [
-  { name: 'Nova', label: 'Cinematic', price: '$49', className: 'nova', description: 'A polished, immersive interface for communities that want the watching experience to lead.' },
-  { name: 'Kairo', label: 'Content-first', price: '$59', className: 'kairo', description: 'A catalogue-focused layout built for large libraries, discovery and editorial content.' },
-  { name: 'Aether', label: 'Minimal', price: '$39', className: 'aether', description: 'A lightweight visual system for people who want the platform to stay quiet and fast.' },
+  { name: 'Nova', label: 'Cinematic example', price: '$49', className: 'nova', description: 'A polished example interface showing how an AnimeFusion installation can look.' },
+  { name: 'Kairo', label: 'Content-first example', price: '$59', className: 'kairo', description: 'A catalogue-focused example built around discovery, libraries and editorial content.' },
+  { name: 'Aether', label: 'Minimal example', price: '$39', className: 'aether', description: 'A quiet example visual system for installations that prefer a clean, lightweight look.' },
 ];
 
 const features = [
-  ['01', 'Self-hosted core', 'Install AnimeFusion on infrastructure you control. Your site, database, configuration and deployment stay yours.'],
-  ['02', 'Automatic importing', 'Scheduled jobs can pull anime metadata, seasons and episodes into your local catalogue instead of making you build it by hand.'],
-  ['03', 'Provider architecture', 'Keep streaming sources behind a replaceable provider layer so the core platform does not depend on one provider.'],
-  ['04', 'Powerful admin', 'Manage users, content, history, sources, branding, settings and platform data from one administration workspace.'],
-  ['05', 'Template system', 'Swap the frontend experience without rebuilding the platform underneath. One core can power multiple storefront designs.'],
-  ['06', 'Built for developers', 'Node, React, Vite and PostgreSQL give you a familiar stack you can inspect, extend and self-host.'],
-  ['07', 'Cron & automation', 'Background jobs handle recurring imports, maintenance and other repetitive platform work automatically.'],
-  ['08', 'SEO-ready foundation', 'Clean content routes, metadata and structured page architecture give each installation a strong foundation for discovery.'],
+  ['01', 'Self-hosted core', 'Install AnimeFusion on infrastructure you control. Your site, database and configuration stay yours.'],
+  ['02', 'Automatic importing', 'Scheduled jobs can pull anime metadata, seasons and episodes into your local catalogue.'],
+  ['03', 'Provider architecture', 'Keep content and streaming sources behind a replaceable provider layer.'],
+  ['04', 'Powerful admin', 'Manage users, content, history, sources, branding, settings and platform data from one workspace.'],
+  ['05', 'Example templates', 'Use the example designs as a starting point and change the visual experience without rebuilding the core.'],
+  ['06', 'Developer-friendly stack', 'Node, React, Vite and PostgreSQL give you a familiar stack to inspect and extend.'],
+  ['07', 'Cron & automation', 'Background jobs handle recurring imports and other repetitive platform work automatically.'],
+  ['08', 'SEO-ready foundation', 'Clean content routes, metadata and structured page architecture provide a strong foundation for discovery.'],
 ];
 
 const steps = [
-  ['01', 'Buy a template', 'Choose the visual experience you want. The platform core stays the same underneath.'],
+  ['01', 'Get AnimeFusion', 'Start with the core and choose an example template or your own frontend direction.'],
   ['02', 'Upload it to your server', 'Use your own hosting, VPS or infrastructure. AnimeFusion is designed to be self-hosted.'],
-  ['03', 'Run the installer', 'Open /install, connect PostgreSQL, configure the environment and create your first administrator.'],
-  ['04', 'Connect your providers', 'Configure the content and streaming providers available to your installation.'],
-  ['05', 'Launch your community', 'The installer is disabled after setup and your AnimeFusion site is ready for customization.'],
+  ['03', 'Run the installer', 'Open /install, connect PostgreSQL, configure the environment and create your administrator.'],
+  ['04', 'Configure your installation', 'Set up the content and streaming providers that your own installation will use.'],
+  ['05', 'Launch your community', 'Finish your branding and settings, then run your own AnimeFusion site.'],
 ];
 
-function Logo() { return <span className="logo-mark"><span>AF</span></span>; }
+const faqs = [
+  ['Is AnimeFusion a hosted service?', 'No. AnimeFusion is designed as self-hosted software. You run the installation on infrastructure you control.'],
+  ['Are the templates finished products?', 'The storefront templates are example designs. They show possible visual directions for AnimeFusion and can be customized for your own installation.'],
+  ['Do the example templates require embed-provider setup?', 'No. The example templates are only frontend examples. Provider configuration belongs to the AnimeFusion installation itself, not the visual template.'],
+  ['Can I change the design later?', 'Yes. The core and presentation are intended to stay separate so you can change the frontend without throwing away the platform underneath.'],
+];
 
-function Button({ children, href = '#templates', light = false, small = false }) {
-  return <a className={`button ${light ? 'button-light' : 'button-dark'} ${small ? 'button-small' : ''}`} href={href}>{children}<span>↗</span></a>;
-}
+const pageStyles = `
+.page{min-height:calc(100vh - 72px);background:#fff}.page-hero{max-width:1180px;margin:auto;padding:100px 24px 75px}.page-kicker{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#888}.page-hero h1{max-width:850px;margin:18px 0 22px;font:600 clamp(50px,7vw,82px)/.94 'Space Grotesk';letter-spacing:-.075em}.page-hero h1 span{color:#999}.page-hero p{max-width:610px;margin:0;color:#737378;font-size:15px;line-height:1.8}.page-grid{max-width:1180px;margin:auto;padding:0 24px 120px}.template-page-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.example-note{margin:0 0 26px;padding:15px 18px;border:1px solid #e5e5e2;border-radius:12px;background:#f7f7f5;color:#777;font-size:11px;line-height:1.65}.feature-page-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.feature-page-card{min-height:210px;padding:28px;border:1px solid #e4e4e1;border-radius:18px;background:#fff}.feature-page-card small{color:#aaa;font-size:9px}.feature-page-card h3{margin:55px 0 9px;font:600 20px 'Space Grotesk';letter-spacing:-.04em}.feature-page-card p{margin:0;color:#777;font-size:12px;line-height:1.7}.auth-page{display:grid;place-items:center;min-height:calc(100vh - 72px);padding:55px 20px;background:#f6f6f4}.auth-card{width:min(440px,100%);padding:34px;border:1px solid #e1e1dd;border-radius:20px;background:#fff;box-shadow:0 25px 70px #1111110b}.auth-card h1{margin:0 0 8px;font:600 32px 'Space Grotesk';letter-spacing:-.05em}.auth-card>p{margin:0 0 28px;color:#777;font-size:12px;line-height:1.6}.auth-form{display:grid;gap:15px}.auth-form label{display:grid;gap:7px;color:#555;font-size:11px;font-weight:600}.auth-form input{height:46px;padding:0 13px;border:1px solid #dddcd8;border-radius:10px;background:#fff;color:#111;outline:none;font:13px 'DM Sans'}.auth-form input:focus{border-color:#111;box-shadow:0 0 0 3px #11111108}.auth-form button{height:46px;margin-top:4px;border:0;border-radius:10px;background:#111;color:#fff;font:600 12px 'DM Sans';cursor:pointer}.auth-switch{margin:20px 0 0;text-align:center;color:#888;font-size:11px}.auth-switch a{color:#111;font-weight:700}.home-example-label{position:absolute;top:13px;right:14px;z-index:4;padding:7px 9px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#666;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.site-footer-simple{padding:30px 24px;border-top:1px solid #e8e8e5;color:#999;font-size:10px;text-align:center}.mobile-page-nav{display:none}@media(max-width:900px){.template-page-grid{grid-template-columns:1fr 1fr}.feature-page-grid{grid-template-columns:1fr}}@media(max-width:680px){.page-hero{padding-top:70px}.page-hero h1{font-size:clamp(46px,14vw,66px)}.template-page-grid{grid-template-columns:1fr}.feature-page-card h3{margin-top:38px}.auth-card{padding:27px}.mobile-page-nav{display:block}.nav-links{display:none}}
+`;
 
-function ProductWindow() {
-  return (
-    <div className="product-window">
-      <div className="product-toolbar"><div className="toolbar-dots"><i /><i /><i /></div><div className="toolbar-url">your-anime-site.example</div><span>•••</span></div>
-      <div className="product-app">
-        <div className="product-nav"><strong><i>AF</i> ANIMEFUSION</strong><span>Home</span><span>Browse</span><span>Schedule</span><span>Community</span><em>⌕</em><small>●</small></div>
-        <div className="product-hero"><div className="hero-panel-copy"><label>YOUR BRAND · YOUR LIBRARY</label><h3>Build a home<br /><b>for your community.</b></h3><p>A self-hosted anime platform powered by one reusable core.</p><div><b>Start exploring</b><span>Browse library →</span></div></div><div className="hero-panel-art"><i /><strong /><span /></div></div>
-        <div className="product-row-title"><b>Continue watching</b><span>View library →</span></div>
-        <div className="product-posters"><i /><i /><i /><i /><i /></div>
-      </div>
-    </div>
-  );
-}
+function Logo(){return <span className="logo-mark"><span>AF</span></span>}
 
-function TemplateCard({ template }) {
-  return (
-    <article className="market-card">
-      <div className={`market-preview ${template.className}`}>
-        <div className="market-nav"><b>{template.name.toUpperCase()}</b><span>Home&nbsp;&nbsp; Browse&nbsp;&nbsp; Search</span></div>
-        <div className="market-copy"><small>ANIMEFUSION TEMPLATE</small><h3>{template.name}<br /><i>edition.</i></h3><span>Preview interface&nbsp; →</span></div>
-        <div className="market-art"><i /><i /><i /></div>
-      </div>
-      <div className="market-meta"><div><small>{template.label}</small><h3>{template.name}</h3><p>{template.description}</p></div><strong>{template.price}</strong></div>
-      <div className="market-actions"><a href="#demo">Live preview <span>↗</span></a><a href="#pricing">Get template <span>→</span></a></div>
-    </article>
-  );
-}
+function go(path){window.history.pushState({},'',path);window.dispatchEvent(new PopStateEvent('popstate'));window.scrollTo({top:0,behavior:'smooth'})}
 
-function App() {
-  const [openFaq, setOpenFaq] = useState(0);
+function Nav(){return <header className="navbar"><a className="brand" href="/" onClick={e=>{e.preventDefault();go('/')}}><Logo/>AnimeFusion</a><nav className="nav-links"><a href="/" onClick={e=>{e.preventDefault();go('/')}}>Home</a><a href="/templates" onClick={e=>{e.preventDefault();go('/templates')}}>Templates</a><a href="/features" onClick={e=>{e.preventDefault();go('/features')}}>Features</a></nav><div className="nav-actions"><a className="login-link" href="/signin" onClick={e=>{e.preventDefault();go('/signin')}}>Sign in</a><a className="button button-dark button-small" href="/signup" onClick={e=>{e.preventDefault();go('/signup')}}>Get started <span>↗</span></a></div></header>}
 
-  return (
-    <div className="site-shell" id="top">
-      <style>{`
-        .site-shell{background:#fff;color:#111;overflow:hidden}.section-pad{padding-left:clamp(24px,6vw,100px);padding-right:clamp(24px,6vw,100px)}
-        .navbar{height:72px;padding:0 clamp(24px,5vw,82px);background:rgba(255,255,255,.92);border-bottom:1px solid #e9e9e7;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
-        .brand{font-family:'DM Sans',sans-serif;font-size:17px;letter-spacing:-.045em}.logo-mark{width:31px;height:31px;border-radius:9px;background:#111;box-shadow:none}.logo-mark span{font-size:8px}.nav-links{gap:30px;color:#777;font-size:12px}.nav-actions{gap:18px;font-size:12px}.button{min-height:44px;padding:0 18px;border-radius:10px;font-size:12px;gap:11px}.button-dark{background:#111;box-shadow:0 8px 22px #11111112}.button-light{background:#fff;color:#111;border:1px solid #ddd}.button-small{min-height:38px;padding:0 14px;border-radius:9px}
-        .hero{max-width:1500px;min-height:720px;padding-top:92px;padding-bottom:95px;grid-template-columns:minmax(330px,.78fr) minmax(500px,1.22fr);gap:72px}.eyebrow{margin-bottom:22px;color:#777;font-size:9px}.eyebrow-dot{width:6px;height:6px;background:#111;box-shadow:none}.hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(52px,6.2vw,86px);font-weight:600;line-height:.94;letter-spacing:-.075em}.hero h1 span{color:#9a9a9d}.hero-text{max-width:500px;margin:25px 0 30px;font-size:14px;line-height:1.78;color:#707075}.hero-actions{gap:22px}.hero-notes{margin-top:32px;gap:16px;font-size:9px}.hero-notes b{color:#111}.hero-visual{padding:0}.browser-window{border-radius:18px;box-shadow:0 35px 90px #11111116,0 1px 4px #1111110b;transform:none}.mock-site{min-height:430px}.floating-card{right:-12px;bottom:22px;border-radius:12px;box-shadow:0 16px 40px #11111118}.floating-icon{background:#111;color:#fff}
-        .logo-strip{background:#fff;min-height:58px;color:#999;border-color:#ededed;font-size:7px}.intro{padding-top:145px;padding-bottom:145px;max-width:1500px}.section-kicker{font-size:9px;color:#888}.intro-grid{margin-top:20px;grid-template-columns:1.3fr .7fr;gap:90px}.intro h2,.section-heading h2,.process h2,.pricing h2,.cta h2{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.07em}.intro h2{font-size:clamp(42px,5vw,70px)}.intro p{font-size:13px;color:#777;line-height:1.9}
-        .features{background:#f6f6f4;padding-top:115px;padding-bottom:130px}.section-heading{margin-bottom:58px}.section-heading h2{font-size:clamp(40px,4.6vw,64px)}.section-heading>p{font-size:11px}.feature-grid{gap:10px}.feature-card{min-height:255px;padding:27px;border-radius:16px;background:#fff;border:1px solid #e5e5e2;box-shadow:none}.feature-card:hover{transform:translateY(-3px);box-shadow:0 18px 45px #11111108}.feature-card h3{margin-top:76px;font-family:'Space Grotesk',sans-serif;font-size:18px}.feature-card p{font-size:11px;color:#7b7b80}
-        .templates{max-width:1500px;padding-top:150px;padding-bottom:155px}.template-grid{gap:20px}.market-card{min-width:0}.market-preview{height:390px;border-radius:18px;position:relative;overflow:hidden;padding:22px;box-shadow:inset 0 0 0 1px #ffffff22}.market-preview.nova{color:#fff;background:radial-gradient(circle at 78% 20%,#bdbdbd 0,#656565 28%,transparent 48%),linear-gradient(145deg,#121212,#303030)}.market-preview.kairo{color:#fff;background:radial-gradient(circle at 75% 20%,#d0d0d0 0,#707070 28%,transparent 48%),linear-gradient(145deg,#0d0d0d,#292929)}.market-preview.aether{color:#111;background:radial-gradient(circle at 78% 20%,#fff 0,#cfcfcf 30%,transparent 50%),linear-gradient(145deg,#f0f0ee,#bdbdbd)}.market-nav{display:flex;justify-content:space-between;font-size:8px;opacity:.85}.market-nav b{font-size:9px;letter-spacing:.1em}.market-nav span{opacity:.55}.market-copy{position:absolute;left:28px;bottom:30px;z-index:2}.market-copy small{font-size:6px;letter-spacing:.18em;opacity:.55}.market-copy h3{font:600 52px/.84 'Space Grotesk',sans-serif;letter-spacing:-.075em;margin:10px 0 20px}.market-copy h3 i{font-style:normal;opacity:.55}.market-copy>span{display:inline-block;border:1px solid #ffffff45;border-radius:8px;padding:9px 12px;font-size:7px}.aether .market-copy>span{border-color:#1114}.market-art{position:absolute;right:25px;bottom:25px;width:48%;height:65%}.market-art i{position:absolute;display:block;border-radius:10px;box-shadow:0 15px 40px #00000025}.market-art i:nth-child(1){right:0;top:0;width:54%;height:75%;background:#ffffff24;transform:rotate(7deg)}.market-art i:nth-child(2){right:18%;bottom:0;width:54%;height:78%;background:#00000020;transform:rotate(-8deg)}.market-art i:nth-child(3){right:38%;bottom:8%;width:43%;height:60%;background:#ffffff18;transform:rotate(2deg)}.market-meta{display:flex;justify-content:space-between;gap:20px;padding:20px 2px 14px}.market-meta small{font-size:8px;color:#999;letter-spacing:.12em;text-transform:uppercase}.market-meta h3{margin:5px 0 6px;font:600 23px 'Space Grotesk',sans-serif;letter-spacing:-.045em}.market-meta p{max-width:350px;margin:0;font-size:11px;line-height:1.65;color:#777}.market-meta>strong{font:600 18px 'Space Grotesk',sans-serif}.market-actions{display:flex;border-top:1px solid #e5e5e5}.market-actions a{flex:1;padding:14px 2px;font-size:10px;font-weight:600}.market-actions a+a{text-align:right}.market-actions span{margin-left:7px}
-        .process{padding-top:130px;padding-bottom:130px;background:#111;color:#fff;grid-template-columns:.72fr 1.28fr;gap:100px}.process h2{font-size:clamp(44px,5vw,70px)}.process-copy>p{font-size:12px}.steps{border-top-color:#2b2b2b}.step{padding:27px 0;border-bottom-color:#2b2b2b}.step h3{font-family:'Space Grotesk',sans-serif;font-size:18px}.step p{font-size:11px;color:#888}.process .section-kicker{color:#777}.pricing{padding-top:145px;padding-bottom:145px}.pricing-card{max-width:1180px;border-radius:22px;background:#f4f4f2;border-color:#e3e3df;padding:clamp(36px,6vw,72px)}.pricing-card p{font-size:12px}.price-box{border-radius:16px;background:#fff;border-color:#e5e5e2;box-shadow:0 10px 30px #11111108}.price-box strong{font-family:'Space Grotesk',sans-serif}.cta{padding-top:110px;padding-bottom:110px;background:#fff}.cta-inner{max-width:1180px;border-radius:24px;padding:105px 30px;background:#111;border-color:#111;box-shadow:0 25px 70px #11111118}.cta-orb{width:220px;height:220px;background:#fff2;filter:blur(45px)}.cta h2{font-size:clamp(44px,5.3vw,72px)}
-        .faq{padding-top:120px;padding-bottom:125px;border-top:1px solid #e9e9e7}.faq-grid{display:grid;grid-template-columns:.75fr 1.25fr;gap:90px}.faq-grid h2{font:600 clamp(40px,4.5vw,62px)/1 'Space Grotesk';letter-spacing:-.065em;margin:18px 0}.faq-intro{max-width:380px;color:#777;font-size:13px;line-height:1.8}.faq-list{display:flex;flex-direction:column;gap:10px}.faq-item{border:1px solid #e4e4e1;border-radius:14px;background:#fff;overflow:hidden}.faq-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;border:0;background:none;padding:21px 22px;text-align:left;font:600 13px 'DM Sans',sans-serif;color:#111;cursor:pointer}.faq-button span:last-child{font-size:18px;color:#888}.faq-answer{padding:0 22px 20px;color:#777;font-size:12px;line-height:1.75}.faq-answer p{margin:0}
-        .footer{background:#fff;border-top:1px solid #e8e8e8;padding-top:55px;padding-bottom:25px}.footer-top{padding-bottom:55px}.footer-brand p{font-size:11px;color:#8a8a8e}.footer-links{gap:70px}.footer-links b{font-size:10px}.footer-links a{font-size:10px;color:#777}.footer-bottom{padding-top:20px;border-top-color:#ededed;font-size:9px;color:#a0a0a3}
-        @media(max-width:1050px){.hero{grid-template-columns:1fr;padding-top:65px}.hero-copy{max-width:760px}.hero-visual{margin-top:15px}.feature-grid,.template-grid{grid-template-columns:1fr 1fr}.intro-grid{grid-template-columns:1fr}.intro p{max-width:600px}.process{grid-template-columns:1fr;gap:55px}.faq-grid{grid-template-columns:1fr;gap:50px}.nav-links{display:none}}
-        @media(max-width:680px){.navbar{height:62px}.nav-actions .login-link{display:none}.hero{min-height:auto;padding-top:58px;padding-bottom:65px}.hero h1{font-size:clamp(48px,14vw,68px)}.hero-text{font-size:13px}.hero-notes{display:none}.browser-window{border-radius:13px}.mock-site{min-height:330px;padding:10px}.mock-links{display:none}.floating-card{display:none}.intro{padding-top:95px;padding-bottom:100px}.feature-grid,.template-grid{grid-template-columns:1fr}.features,.templates{padding-top:90px;padding-bottom:100px}.market-preview{height:360px}.section-heading{display:block}.section-heading>p{margin-top:20px}.pricing-card{display:block}.price-box{margin-top:30px}.cta-inner{padding:75px 20px}.footer-links{gap:30px;flex-wrap:wrap}.footer-bottom{display:block}.footer-bottom span+span{display:none}}
-      `}</style>
+function Button({children,href='/',light=false}){return <a className={`button ${light?'button-light':'button-dark'}`} href={href} onClick={e=>{if(href.startsWith('/')){e.preventDefault();go(href)}}}>{children}<span>↗</span></a>}
 
-      <header className="navbar">
-        <a className="brand" href="#top"><Logo /><span>AnimeFusion</span></a>
-        <nav className="nav-links"><a href="#templates">Templates</a><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#docs">Docs</a></nav>
-        <div className="nav-actions"><a className="login-link" href="#docs">Documentation</a><Button small href="#pricing">Get started</Button></div>
-      </header>
+function ProductWindow(){return <div className="browser-window"><div className="browser-bar"><div className="browser-dots"><i/><i/><i/></div><div className="browser-url">Example Template · AnimeFusion</div><span className="browser-menu">•••</span></div><div className="product-window"><div className="product-app"><div className="product-nav"><strong><i>AF</i> ANIMEFUSION</strong><span>Home</span><span>Browse</span><span>Schedule</span><span>Community</span><em>⌕</em><small>●</small></div><div className="product-hero"><div className="hero-panel-copy"><label>EXAMPLE TEMPLATE</label><h3>A home<br/><b>for your community.</b></h3><p>A visual example powered by the AnimeFusion core.</p><div><b>Explore example</b><span>Browse library →</span></div></div><div className="hero-panel-art"><i/><strong/><span/></div></div><div className="product-row-title"><b>Continue watching</b><span>Example library →</span></div><div className="product-posters"><i/><i/><i/><i/><i/></div></div></div></div>}
 
-      <main>
-        <section className="hero section-pad">
-          <div className="hero-copy">
-            <div className="eyebrow"><span className="eyebrow-dot" /> The self-hosted anime platform</div>
-            <h1>Build your anime site.<br /><span>Own the experience.</span></h1>
-            <p className="hero-text">AnimeFusion gives you a reusable platform core, automatic catalogue workflows and premium templates — so you can launch on your own infrastructure instead of starting from an empty repository.</p>
-            <div className="hero-actions"><Button href="#templates">Explore templates</Button><a className="quiet-link" href="#how-it-works">See how it works <span>→</span></a></div>
-            <div className="hero-notes"><span><b>✓</b> Self-hosted</span><span><b>✓</b> One core, many templates</span><span><b>✓</b> PostgreSQL</span></div>
-          </div>
-          <div className="hero-visual" id="demo"><ProductWindow /><div className="floating-card"><span className="floating-icon">✓</span><div><strong>Ready to deploy</strong><small>Install · configure · launch</small></div></div></div>
-        </section>
+function TemplateCard({template}){return <article className="market-card"><div className={`market-preview ${template.className}`}><div className="market-nav"><b>EXAMPLE TEMPLATE</b><span>Home&nbsp;&nbsp; Browse&nbsp;&nbsp; Search</span></div><div className="market-copy"><small>{template.label}</small><h3>{template.name}<br/><i>example.</i></h3><span>View example&nbsp; →</span></div><div className="market-art"><i/><i/><i/></div></div><div className="market-meta"><div><small>{template.label}</small><h3>{template.name} Example</h3><p>{template.description}</p></div><strong>{template.price}</strong></div><div className="market-actions"><a href="/templates" onClick={e=>{e.preventDefault();go('/templates')}}>View example <span>↗</span></a><a href="/signup" onClick={e=>{e.preventDefault();go('/signup')}}>Get started <span>→</span></a></div></article>}
 
-        <div className="logo-strip"><span>SELF-HOSTED</span><i /><span>REACT + VITE</span><i /><span>NODE + EXPRESS</span><i /><span>POSTGRESQL</span><i /><span>YOUR BRAND</span><i /><span>YOUR INFRASTRUCTURE</span></div>
+function Footer(){return <footer className="site-footer-simple">AnimeFusion · Self-hosted anime platform software</footer>}
 
-        <section className="intro section-pad">
-          <div className="section-kicker">01 — The platform</div>
-          <div className="intro-grid"><h2>One platform core.<br /><span>Different ways to make it yours.</span></h2><p>AnimeFusion is built around a simple idea: the hard platform work should be reusable. Install the core once, configure your providers and database, then choose the interface that fits your community.</p></div>
-        </section>
+function Home(){return <><main><section className="hero section-pad"><div className="hero-copy"><div className="eyebrow"><span className="eyebrow-dot"/>SELF-HOSTED ANIME PLATFORM</div><h1>Build a home <span>for your community.</span></h1><p className="hero-text">AnimeFusion gives you one reusable core for building, running and customizing your own anime platform.</p><div className="hero-actions"><Button href="/templates">Explore examples</Button><Button href="/features" light>See features</Button></div><div className="hero-notes"><span><b>01</b> Your infrastructure</span><span><b>02</b> Your database</span><span><b>03</b> Your frontend</span></div></div><div className="hero-visual"><div className="home-example-label">Example template</div><ProductWindow/></div></section><section className="intro section-pad"><span className="section-kicker">THE PLATFORM</span><div className="intro-grid"><h2>One core.<br/><span>Many ways to build.</span></h2><p>Keep the platform logic separate from the visual layer. AnimeFusion is designed around a reusable self-hosted core, while templates show different ways the frontend can look.</p></div></section><section className="features section-pad"><div className="section-heading"><div><span className="section-kicker">WHAT'S INSIDE</span><h2>The important pieces.</h2></div><p>Built around the parts you actually need to run an anime community platform.</p></div><div className="feature-grid">{features.slice(0,6).map(f=><article className="feature-card" key={f[0]}><div className="feature-top"><span>{f[0]}</span><span>↗</span></div><h3>{f[1]}</h3><p>{f[2]}</p></article>)}</div></section><section className="templates section-pad"><div className="section-heading"><div><span className="section-kicker">EXAMPLE TEMPLATES</span><h2>See possible directions.</h2></div><p>These are examples of the visual layer — not separate hosted services.</p></div><div className="template-grid">{templates.map(t=><TemplateCard key={t.name} template={t}/>)}</div></section><section className="process section-pad"><div className="process-copy"><span className="section-kicker">SELF-HOSTED FLOW</span><h2>From package<br/>to platform.</h2><p>You control the server and installation. The setup process connects the core to your own environment, then leaves you with a platform you can customize.</p><Button href="/features" light>Read about the core</Button></div><div className="steps">{steps.map(s=><div className="step" key={s[0]}><span>{s[0]}</span><div><h3>{s[1]}</h3><p>{s[2]}</p></div><b>+</b></div>)}</div></section></main><Footer/></>}
 
-        <section className="features section-pad" id="features">
-          <div className="section-heading"><div><div className="section-kicker">02 — What ships with it</div><h2>Everything important.<br /><span>Nothing bolted on.</span></h2></div><p>The foundation is designed around the actual workflow of running a self-hosted anime website.</p></div>
-          <div className="feature-grid">{features.map(([number, title, description]) => <article className="feature-card" key={number}><div className="feature-top"><span>{number}</span><span>ANIMEFUSION CORE</span></div><h3>{title}</h3><p>{description}</p></article>)}</div>
-        </section>
+function TemplatesPage(){return <><main className="page"><section className="page-hero"><span className="page-kicker">EXAMPLE TEMPLATES</span><h1>Visual starting points.<br/><span>Not another hosted service.</span></h1><p>Explore example frontend designs for AnimeFusion. The examples show how the same self-hosted core can be presented in different ways.</p></section><section className="page-grid"><div className="example-note"><b>Important:</b> these are example templates. They do not require embed-provider setup themselves. Provider configuration belongs to the AnimeFusion installation and its backend.</div><div className="template-page-grid">{templates.map(t=><TemplateCard key={t.name} template={t}/>)}</div></section></main><Footer/></>}
 
-        <section className="templates section-pad" id="templates">
-          <div className="section-heading"><div><div className="section-kicker">03 — Template marketplace</div><h2>Choose the interface.<br /><span>Keep the platform.</span></h2></div><p>Templates change the presentation, not the foundation underneath your installation.</p></div>
-          <div className="template-grid">{templates.map(template => <TemplateCard key={template.name} template={template} />)}</div>
-        </section>
+function FeaturesPage(){return <><main className="page"><section className="page-hero"><span className="page-kicker">FEATURES</span><h1>The core that keeps your <span>site together.</span></h1><p>AnimeFusion is built as a reusable platform core with a separate visual layer, so the architecture can stay consistent while the frontend changes.</p></section><section className="page-grid"><div className="feature-page-grid">{features.map(f=><article className="feature-page-card" key={f[0]}><small>{f[0]}</small><h3>{f[1]}</h3><p>{f[2]}</p></article>)}</div></section></main><Footer/></>}
 
-        <section className="process section-pad" id="how-it-works">
-          <div className="process-copy"><div className="section-kicker">04 — Deployment</div><h2>From download<br /><span>to your live site.</span></h2><p>No hosted control panel. No locked infrastructure. Upload the package, run the installer, connect your database and providers, then take over from there.</p><Button href="#docs" light>Read the docs</Button></div>
-          <div className="steps">{steps.map(([number, title, description]) => <div className="step" key={number}><span>{number}</span><div><h3>{title}</h3><p>{description}</p></div><b>↗</b></div>)}</div>
-        </section>
+function AuthPage({signup=false}){return <main className="auth-page"><section className="auth-card"><div style={{marginBottom:24}}><Logo/></div><h1>{signup?'Create your account':'Welcome back'}</h1><p>{signup?'Create an AnimeFusion account to manage your purchases and access your software.':'Sign in to your AnimeFusion account.'}</p><form className="auth-form" onSubmit={e=>e.preventDefault()}>{signup&&<label>Name<input placeholder="Your name"/></label>}<label>Email<input type="email" placeholder="you@example.com"/></label><label>Password<input type="password" placeholder="••••••••"/></label>{signup&&<label>Confirm password<input type="password" placeholder="••••••••"/></label>}<button type="submit">{signup?'Create account':'Sign in'} <span>→</span></button></form><p className="auth-switch">{signup?'Already have an account? ':'Need an account? '}<a href={signup?'/signin':'/signup'} onClick={e=>{e.preventDefault();go(signup?'/signin':'/signup')}}>{signup?'Sign in':'Create one'}</a></p></section></main>}
 
-        <section className="pricing section-pad" id="pricing">
-          <div className="pricing-card"><div><div className="section-kicker">05 — Start your installation</div><h2>Buy the core.<br /><span>Pick your look.</span></h2><p>AnimeFusion is planned as a self-hosted software marketplace: a reusable platform core with visual templates you can install on your own infrastructure.</p></div><div className="price-box"><small>Template licences</small><strong>from $39</strong><span>one-time starting price</span><Button href="#templates">View templates</Button></div></div>
-        </section>
-
-        <section className="faq section-pad" id="docs">
-          <div className="faq-grid"><div><div className="section-kicker">06 — Documentation</div><h2>Questions before<br />you deploy.</h2><p className="faq-intro">A few answers about how the self-hosted platform is intended to work.</p></div><div className="faq-list">
-            {[
-              ['Where does AnimeFusion run?', 'On infrastructure you control. The customer installation is self-hosted rather than a single centralized AnimeFusion hosting service.'],
-              ['What happens at /install?', 'The installer is intended to guide the first deployment: database configuration, migrations, administrator creation and initial platform setup. After setup, the installer is disabled or removed.'],
-              ['Can I change templates later?', 'Yes. The architecture is intentionally separated into a reusable platform core and visual templates, so the presentation can change without rebuilding the foundation.'],
-              ['What database does it use?', 'The current platform direction uses PostgreSQL for the installation database and its core application data.'],
-              ['Can I add or replace providers?', 'Yes. Providers are designed as a replaceable layer so a site owner can configure the providers available to their installation without hardcoding a single source into the core.'],
-            ].map(([question, answer], index) => <div className="faq-item" key={question}><button className="faq-button" onClick={() => setOpenFaq(openFaq === index ? -1 : index)}><span>{question}</span><span>{openFaq === index ? '−' : '+'}</span></button>{openFaq === index && <div className="faq-answer"><p>{answer}</p></div>}</div>)}
-          </div></div>
-        </section>
-
-        <section className="cta section-pad"><div className="cta-inner"><div className="cta-orb" /><div className="section-kicker">YOUR SERVER. YOUR BRAND. YOUR PLATFORM.</div><h2>Stop starting from zero.<br /><em>Start with AnimeFusion.</em></h2><p>Build the community experience you want, then keep control of the software underneath it.</p><div className="hero-actions"><Button href="#templates" light>Explore templates</Button><a className="quiet-link" href="#docs" style={{ color: '#fff' }}>Read documentation <span>→</span></a></div></div></section>
-      </main>
-
-      <footer className="footer"><div className="footer-top section-pad"><div className="footer-brand"><a className="brand" href="#top"><Logo /><span>AnimeFusion</span></a><p>A self-hosted platform core and template marketplace for anime communities.</p></div><div className="footer-links"><div><b>Product</b><a href="#templates">Templates</a><a href="#features">Features</a><a href="#pricing">Pricing</a></div><div><b>Resources</b><a href="#docs">Documentation</a><a href="#how-it-works">How it works</a><a href="#demo">Demo</a></div><div><b>Platform</b><a href="#features">Core</a><a href="#templates">Marketplace</a><a href="#top">About AnimeFusion</a></div></div></div><div className="footer-bottom section-pad"><span>© 2026 AnimeFusion. All rights reserved.</span><span>Self-hosted · Built for developers and anime communities.</span></div></footer>
-    </div>
-  );
-}
+function App(){const [path,setPath]=useState(window.location.pathname.replace(/\/$/,'')||'/');useEffect(()=>{const handler=()=>setPath(window.location.pathname.replace(/\/$/,'')||'/');window.addEventListener('popstate',handler);return()=>window.removeEventListener('popstate',handler)},[]);const page=path==='/templates'?<TemplatesPage/>:path==='/features'?<FeaturesPage/>:path==='/signin'?<AuthPage/>:path==='/signup'?<AuthPage signup/>:<Home/>;return <div className="site-shell"><style>{pageStyles}</style><Nav/>{page}</div>}
 
 export default App;
