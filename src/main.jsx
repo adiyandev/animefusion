@@ -5,6 +5,7 @@ import './styles.css';
 import './animations.css';
 import './feature-enhancement.css';
 import './feature-upgrade.css';
+import './ui-repair.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
