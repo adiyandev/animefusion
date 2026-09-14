@@ -1,0 +1,21 @@
+/* Stable UI pass: routing-safe header + clean motion. */
+.site-shell{min-height:100vh;overflow-x:clip}
+.navbar{position:sticky!important;top:14px!important;z-index:1000!important;width:min(1180px,calc(100% - 32px))!important;min-height:58px!important;margin:14px auto 0!important;padding:7px 8px 7px 12px!important;display:flex!important;align-items:center!important;gap:18px!important;border:1px solid rgba(255,255,255,.11)!important;border-radius:18px!important;background:rgba(10,10,10,.86)!important;box-shadow:0 14px 42px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.06)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important}
+.navbar .brand{display:inline-flex!important;align-items:center!important;gap:10px!important;flex:0 0 auto!important;color:#fff!important;text-decoration:none!important;font-weight:650!important;letter-spacing:-.03em!important}
+.navbar .logo-mark{width:32px!important;height:32px!important;border-radius:10px!important;display:grid!important;place-items:center!important;background:#fff!important;color:#050505!important}
+.navbar .logo-mark span{font-size:10px!important;font-weight:800!important;letter-spacing:-.05em!important}
+.nav-links{display:flex!important;align-items:center!important;gap:4px!important;margin-left:8px!important}
+.nav-links a,.login-link{display:inline-flex!important;align-items:center!important;min-height:38px!important;padding:0 12px!important;border-radius:11px!important;color:#888!important;text-decoration:none!important;font-size:12px!important;transition:background .2s ease,color .2s ease,transform .2s ease!important}
+.nav-links a:hover,.login-link:hover{background:rgba(255,255,255,.07)!important;color:#fff!important}
+.nav-actions{margin-left:auto!important;display:flex!important;align-items:center!important;gap:4px!important}
+.navbar .button-small{min-height:40px!important;padding:0 14px!important;border-radius:11px!important}
+.button{transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s ease,background .25s ease!important}
+.button:hover{transform:translateY(-2px)!important}
+.hero{padding-top:88px!important}
+.page .page-hero{padding-top:82px!important}
+.page .page-grid{padding-bottom:100px!important}
+.feature-card,.feature-page-card,.market-card,.architecture-card,.step,.faq-list details{will-change:auto!important}
+.feature-card{animation:none!important}
+.feature-card:hover{transform:translateY(-5px)!important}
+@media (max-width:760px){.navbar{width:calc(100% - 20px)!important;margin-top:10px!important;top:10px!important;border-radius:16px!important}.nav-links{display:none!important}.nav-actions{gap:2px!important}.login-link{display:none!important}.navbar .button-small{padding:0 12px!important}.hero{padding-top:60px!important}.page .page-hero{padding:65px 20px 55px!important}.page .page-grid{padding:0 20px 70px!important}.page .feature-page-grid{grid-template-columns:1fr!important}.page .feature-page-grid .feature-page-card:first-child{grid-column:auto!important;min-height:420px!important}.page .feature-page-grid .feature-page-card:first-child::before,.page .feature-page-grid .feature-page-card:first-child::after{inset:180px 18px 18px!important}.page .feature-page-grid .feature-page-card:first-child h3,.page .feature-page-grid .feature-page-card:first-child p{max-width:100%!important}.nav-actions .button span{display:none!important}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
