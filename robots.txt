@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://adiyandev.github.io/animefusion/sitemap.xml
