@@ -281,3 +281,41 @@ footer span:hover{color:var(--ink)}
 .googlePayPanel{margin-top:18px;padding:23px;border:1px solid #dfe2e6;border-radius:15px;background:#fafbfc;display:flex;align-items:center;gap:14px}.googlePayLogo{width:40px;height:40px;border-radius:11px;background:#fff;border:1px solid #e0e3e7;display:grid;place-items:center;font-size:18px;font-weight:900}.googlePayPanel b{display:block;font-size:12px}.googlePayPanel span{display:block;color:#858c95;font-size:9px;line-height:1.6;margin-top:5px}
 @media(max-width:900px){.checkoutGrid{grid-template-columns:1fr}.checkoutSummary{position:static}}
 @media(max-width:620px){.checkoutCard.checkoutWide{padding:23px}.paymentMethods{grid-template-columns:1fr}.cardDetails{padding:17px}.cardDetailsHead{flex-direction:column}.checkoutHero h1{font-size:49px}}
+
+
+/* Login / signup */
+.authPage{min-height:calc(100vh - 74px);background:linear-gradient(180deg,#f7f8f9 0%,#fff 55%);padding:70px 0 90px}
+.authShell{width:min(1120px,calc(100% - 40px));margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 500px;gap:90px;align-items:center}
+.authIntro h1{font-size:clamp(52px,6.2vw,82px);line-height:.94;letter-spacing:-.065em;margin:12px 0 24px}
+.authIntro h1 em{font-style:normal;color:var(--accent)}
+.authIntro>p{max-width:590px;color:var(--muted);font-size:15px;line-height:1.8}
+.authBenefits{display:grid;gap:12px;margin-top:34px;max-width:560px}
+.authBenefits>div{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+.authBenefits svg{color:#287a4b;margin-top:2px;flex:0 0 auto}
+.authBenefits b{display:block;font-size:11px}.authBenefits small{display:block;color:#858c95;font-size:9px;line-height:1.55;margin-top:4px}
+.authCard{background:#fff;border:1px solid #dfe2e6;border-radius:24px;padding:30px;box-shadow:0 30px 80px #11182712}
+.authTabs{display:grid;grid-template-columns:1fr 1fr;background:#f4f5f6;border-radius:12px;padding:4px;margin-bottom:29px}
+.authTabs button{border:0;background:transparent;border-radius:9px;padding:11px;font:inherit;font-size:11px;font-weight:800;color:#858b94;cursor:pointer;transition:.2s}
+.authTabs button.active{background:#fff;color:#15171b;box-shadow:0 4px 14px #1118270b}
+.authCardHead>span{font-size:8px;letter-spacing:.12em;font-weight:900;color:var(--accent)}
+.authCardHead h2{font-size:28px;letter-spacing:-.045em;margin:8px 0 8px}
+.authCardHead p{font-size:10px;color:#858c95;line-height:1.6;margin:0 0 25px}
+.authForm{display:flex;flex-direction:column;gap:15px}
+.authForm>label{font-size:9px;font-weight:800;color:#656c75}
+.authForm input[type="email"],.authForm input[type="text"],.authPassword input{display:block;width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #dfe2e6;border-radius:11px;padding:13px;background:#fafbfc;outline:0;font:inherit;font-size:11px;transition:.2s}
+.authForm input:focus{border-color:#bfc4ca;background:#fff;box-shadow:0 0 0 3px #ea580c0b}
+.authPassword{position:relative}.authPassword input{padding-right:58px}.authPassword button{position:absolute;right:10px;top:50%;transform:translateY(-20%);border:0;background:transparent;color:#707780;font-size:8px;font-weight:800;cursor:pointer}
+.authRow{display:flex;justify-content:space-between;align-items:center;margin-top:-3px}
+.authRow>a,.authSwitch button{color:#15171b;font-size:9px;font-weight:800;text-decoration:none}
+.remember{display:flex!important;align-items:flex-start;gap:7px;font-size:9px!important;color:#7a818a!important;line-height:1.5}
+.remember input{margin:2px 0 0}.authRow .remember{align-items:center}
+.authSubmit{display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:#15171b;color:#fff;padding:14px 18px;font:inherit;font-size:11px;font-weight:850;cursor:pointer;transition:.2s;margin-top:3px}
+.authSubmit:hover{background:#272a30;gap:11px;transform:translateY(-2px);box-shadow:0 12px 25px #1118271c}
+.authDivider{display:flex;align-items:center;gap:10px;color:#a0a5ad;font-size:8px;margin:22px 0 14px}.authDivider span{height:1px;background:#eceef0;flex:1}
+.authAlt{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;border:1px solid #dfe2e6;background:#fff;border-radius:999px;padding:12px;font:inherit;font-size:10px;font-weight:800;color:#25282d;cursor:pointer;transition:.2s}
+.authAlt:hover{background:#f8f9fa;border-color:#c8cdd2;transform:translateY(-1px)}
+.authAlt span{display:grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#f1f2f3;font-weight:900}
+.authSwitch{text-align:center;color:#858c95;font-size:9px;margin:18px 0 0}.authSwitch button{border:0;background:none;padding:0;cursor:pointer}
+.authNote{display:flex;align-items:flex-start;gap:5px;color:#9a9fa7;font-size:7.5px;line-height:1.5;margin-top:17px}.authNote svg{color:#287a4b;flex:0 0 auto}
+@media(max-width:900px){.authShell{grid-template-columns:1fr;gap:45px;max-width:620px}.authIntro h1{font-size:62px}.authIntro>p{max-width:620px}.authBenefits{margin-top:25px}}
+@media(max-width:620px){.authPage{padding:45px 0 65px}.authShell{width:min(100% - 28px,500px)}.authIntro h1{font-size:50px}.authIntro>p{font-size:13px}.authCard{padding:21px;border-radius:19px}.authCardHead h2{font-size:24px}}
