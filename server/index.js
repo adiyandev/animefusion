@@ -342,6 +342,39 @@ app.post("/api/security/change-password",auth,async(req,res)=>{
  res.json({ok:true});
 });
 
+app.get("/api/admin/support/cases",auth,adminOnly("support.read"),async(req,res)=>{
+ const {rows}=await pool.query(`select c.*,u.name as customer_name,u.email as customer_email,
+ (select count(*)::int from support_messages m where m.case_id=c.id) as message_count,
+ (select max(m.created_at) from support_messages m where m.case_id=c.id) as last_message_at
+ from support_cases c join users u on u.id=c.user_id order by c.updated_at desc`);
+ res.json(rows);
+});
+app.get("/api/admin/support/cases/:id/messages",auth,adminOnly("support.read"),async(req,res)=>{
+ const {rows}=await pool.query(`select m.*,u.name as sender_name,u.role as sender_role
+ from support_messages m left join users u on u.id=m.sender_user_id
+ join support_cases c on c.id=m.case_id where c.id=$1 order by m.created_at`,[req.params.id]);
+ res.json(rows);
+});
+app.patch("/api/admin/support/cases/:id",auth,adminOnly("support.manage"),async(req,res)=>{
+ const {status,priority}=req.body||{};
+ if(status&&!["OPEN","IN_PROGRESS","WAITING","RESOLVED","CLOSED"].includes(status))return res.status(400).json({error:"Invalid support status"});
+ if(priority&&!["low","normal","high","urgent"].includes(priority))return res.status(400).json({error:"Invalid support priority"});
+ const {rows}=await pool.query("update support_cases set status=coalesce($1,status),priority=coalesce($2,priority),closed_at=case when $1 in ('RESOLVED','CLOSED') then coalesce(closed_at,now()) when $1 in ('OPEN','IN_PROGRESS','WAITING') then null else closed_at end,updated_at=now() where id=$3 returning *",[status||null,priority||null,req.params.id]);
+ if(!rows[0])return res.status(404).json({error:"Case not found"});
+ await audit(req,"admin.support.case.update","support_case",req.params.id,{status:rows[0].status,priority:rows[0].priority});
+ io.to("case:"+req.params.id).emit("case:updated",rows[0]);
+ res.json(rows[0]);
+});
+app.post("/api/admin/support/cases/:id/messages",auth,adminOnly("support.manage"),async(req,res)=>{
+ const body=String(req.body?.body||"").trim();if(!body)return res.status(400).json({error:"Message is required"});
+ const c=await pool.query("select id from support_cases where id=$1",[req.params.id]);if(!c.rows[0])return res.status(404).json({error:"Case not found"});
+ const {rows}=await pool.query("insert into support_messages(case_id,sender_user_id,body) values($1,$2,$3) returning *",[req.params.id,req.user.id,body]);
+ await pool.query("update support_cases set updated_at=now() where id=$1",[req.params.id]);
+ const message={...rows[0],sender_name:req.user.name,sender_role:req.user.role};
+ io.to("case:"+req.params.id).emit("message:new",message);
+ await audit(req,"admin.support.message","support_case",req.params.id);
+ res.status(201).json(message);
+});
 app.get("/api/admin/analytics",auth,adminOnly("analytics.read"),async(req,res)=>{
  const [totals,events,users,orders]=await Promise.all([
   pool.query("select count(*)::int as events,count(distinct user_id)::int as unique_users from analytics_events where created_at>now()-interval '30 days'"),
