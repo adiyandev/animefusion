@@ -62,3 +62,8 @@ footer span:hover{color:var(--ink)}
 .routeLine{height:24px;border-left:1px dashed #cfd4da;margin-left:29px;position:relative}
 .routeLine:after{content:"";position:absolute;bottom:-1px;left:-3px;width:5px;height:5px;border-radius:50%;background:#cfd4da}
 @media(max-width:620px){.route{padding:18px}.routeNode{gap:9px}.routeNode strong{font-size:7px;padding:5px 6px}.deployLabel{font-size:8px}.routeNode b{font-size:10px}}
+
+/* Liquid-glass navbar while scrolling */
+.nav{background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.7);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);box-shadow:0 10px 30px rgba(17,17,10,.08),inset 0 1px 0 rgba(255,255,255,.9);transition:width .3s ease,margin .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease,backdrop-filter .3s ease}
+.nav:hover{background:rgba(255,255,255,.8);box-shadow:0 16px 40px rgba(17,17,10,.11),inset 0 1px 0 rgba(255,255,255,.95)}
+@supports not ((backdrop-filter:blur(1px))){.nav{background:#fffffff2}}
