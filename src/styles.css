@@ -643,3 +643,13 @@ footer span:hover{color:var(--ink)}
 .portalPayment div{display:grid;gap:4px}.portalPayment div b{font-size:11px}.portalPayment div span{font-size:8px;color:#858d96}.portalPayment> b{font-size:7px;color:#2d7b4d;background:#edf8f1;padding:5px 7px;border-radius:999px}
 @media(max-width:900px){.portalDetailRows{grid-template-columns:repeat(2,1fr)}.portalSettingsGrid{grid-template-columns:1fr}.portalInstallerCard{grid-template-columns:auto 1fr}.portalDownload{grid-column:2;justify-self:start}}
 @media(max-width:560px){.portalDetailCard,.portalSecretCard,.portalSettingsCard,.portalInstallerCard{padding:17px}.portalDetailHead{flex-direction:column}.portalDetailRows{grid-template-columns:1fr}.portalSecretCard{grid-template-columns:1fr}.portalSecretCard button{justify-self:start}.portalInstallerCard{grid-template-columns:auto 1fr}.installerMain{min-width:0}.portalDownload{grid-column:1/-1}.portalDownload{width:100%;justify-content:center}}
+
+.checkoutGate{min-height:calc(100vh - 72px);display:grid;place-items:center;padding:70px 24px;background:#f7f8fa}
+.checkoutGateCard{width:min(680px,100%);box-sizing:border-box;background:#fff;border:1px solid #e4e7ea;border-radius:24px;padding:clamp(30px,6vw,58px);text-align:center;box-shadow:0 25px 70px rgba(17,24,39,.09);animation:checkoutGateIn .35s cubic-bezier(.2,.8,.2,1) both}
+.checkoutGateCard h1{font-size:clamp(38px,6vw,66px);line-height:.98;letter-spacing:-.065em;margin:14px 0 18px;color:#111827}
+.checkoutGateCard h1 em{font-style:normal;color:var(--accent)}
+.checkoutGateCard p{max-width:560px;margin:0 auto;color:#727b85;font-size:13px;line-height:1.7}
+.checkoutGateActions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:28px}
+.checkoutGateActions .primary,.checkoutGateActions .secondary{cursor:pointer}
+.checkoutGateNote{display:inline-flex;align-items:center;gap:7px;margin-top:24px;padding:9px 12px;border:1px solid #eceef1;border-radius:999px;background:#fafafa;color:#858d96;font-size:8px;font-weight:800}
+@keyframes checkoutGateIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
