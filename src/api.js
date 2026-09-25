@@ -2,7 +2,8 @@ const API_BASE=(import.meta.env.VITE_API_URL||"https://animefusion.onrender.com"
 
 export function getAuthToken(){return sessionStorage.getItem("anifuze_api_token")||"";}
 export function setAuthSession(data){
-  if(data?.token)sessionStorage.setItem("anifuze_api_token",data.token);\n  window.dispatchEvent(new Event("authchange"));
+  if(data?.token)sessionStorage.setItem("anifuze_api_token",data.token);
+  window.dispatchEvent(new Event("authchange"));
   if(data?.user)localStorage.setItem("anifuze_customer_name",data.user.name||"Customer");
 }
 export function clearAuthSession(){sessionStorage.removeItem("anifuze_api_token");window.dispatchEvent(new Event("authchange"));}
