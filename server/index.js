@@ -9,7 +9,7 @@ const app=express();
 const port=Number(process.env.PORT||8787);
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_SSL==="false"?false:{rejectUnauthorized:false}});
 
-const allowedOrigins=(process.env.FRONTEND_ORIGIN||"").split(",").map(value=>value.trim()).filter(Boolean);\napp.use(cors({origin:(origin,callback)=>{if(!origin||allowedOrigins.length===0||allowedOrigins.includes(origin))return callback(null,true);return callback(new Error("CORS origin not allowed"));},credentials:true}));
+const allowedOrigins=[...new Set(["https://adiyandev.github.io",...(process.env.FRONTEND_ORIGIN||"").split(",").map(value=>value.trim().replace(/\\/$/,"")).filter(Boolean)])];\napp.use(cors({origin:(origin,callback)=>{if(!origin||allowedOrigins.includes(origin))return callback(null,true);return callback(null,false);},credentials:true}));\napp.options("*",cors({origin:(origin,callback)=>{if(!origin||allowedOrigins.includes(origin))return callback(null,true);return callback(null,false);},credentials:true}));
 app.use(express.json({limit:"2mb"}));
 
 const hash=(value)=>crypto.createHash("sha256").update(value).digest("hex");
