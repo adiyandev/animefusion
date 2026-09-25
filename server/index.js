@@ -179,6 +179,38 @@ app.get("/api/licenses",auth,async(req,res)=>{
  res.json(rows);
 });
 
+app.post("/api/license/activate",auth,async(req,res)=>{
+ const {licenseKey,fingerprint,label,domain,version,environment="production"}=req.body||{};
+ if(!licenseKey||!fingerprint)return res.status(400).json({error:"License key and installation fingerprint are required"});
+ const license=await pool.query("select l.*,p.name as product_name from licenses l left join products p on p.id=l.product_id where l.license_key=$1 and l.user_id=$2",[licenseKey.trim().toUpperCase(),req.user.id]);
+ const l=license.rows[0];
+ if(!l)return res.status(404).json({error:"License not found"});
+ if(l.status!=="ACTIVE"|| (l.expires_at&&new Date(l.expires_at)<new Date()))return res.status(403).json({error:"License is not active"});
+ const fp=hash(String(fingerprint));
+ const existing=await pool.query("select * from license_activations where license_id=$1 and fingerprint_hash=$2",[l.id,fp]);
+ if(existing.rows[0]){
+   await pool.query("update license_activations set last_seen_at=now(),status='ACTIVE',revoked_at=null,label=coalesce($1,label) where id=$2",[label||null,existing.rows[0].id]);
+   return res.json({activationId:existing.rows[0].id,licenseId:l.id,status:"ACTIVE",product:l.product_name});
+ }
+ const count=await pool.query("select count(*)::int as count from license_activations where license_id=$1 and status='ACTIVE'",[l.id]);
+ if(count.rows[0].count>=l.max_activations)return res.status(409).json({error:"Activation limit reached"});
+ const activationToken=token(),activation=await pool.query("insert into license_activations(license_id,user_id,activation_token_hash,fingerprint_hash,label) values($1,$2,$3,$4,$5) returning id",[l.id,req.user.id,hash(activationToken),fp,label||null]);
+ const installation=await pool.query("insert into installations(user_id,license_id,activation_id,domain,version,environment,status,last_seen_at) values($1,$2,$3,$4,$5,$6,'ACTIVE',now()) returning id",[req.user.id,l.id,activation.rows[0].id,domain||null,version||null,environment]);
+ await pool.query("update license_activations set installation_id=$1 where id=$2",[installation.rows[0].id,activation.rows[0].id]);
+ await pool.query("update licenses set activation_count=activation_count+1,updated_at=now() where id=$1",[l.id]);
+ res.status(201).json({activationId:activation.rows[0].id,installationId:installation.rows[0].id,activationToken,licenseId:l.id,status:"ACTIVE",product:l.product_name});
+});
+
+app.post("/api/license/heartbeat",auth,async(req,res)=>{
+ const {activationToken,fingerprint}=req.body||{};if(!activationToken||!fingerprint)return res.status(400).json({error:"Activation token and fingerprint are required"});
+ const {rows}=await pool.query("select a.id,a.license_id,a.status,l.status as license_status,l.expires_at from license_activations a join licenses l on l.id=a.license_id where a.activation_token_hash=$1 and a.user_id=$2 and a.fingerprint_hash=$3",[hash(activationToken),req.user.id,hash(String(fingerprint))]);
+ if(!rows[0]||rows[0].status!=="ACTIVE"||rows[0].license_status!=="ACTIVE")return res.status(403).json({error:"Activation is not valid"});
+ if(rows[0].expires_at&&new Date(rows[0].expires_at)<new Date())return res.status(403).json({error:"License has expired"});
+ await pool.query("update license_activations set last_seen_at=now() where id=$1",[rows[0].id]);
+ await pool.query("update installations set last_seen_at=now(),updated_at=now() where activation_id=$1",[rows[0].id]);
+ res.json({valid:true,status:"ACTIVE"});
+});
+
 app.get("/api/services",auth,async(_req,res)=>{
   const {rows}=await pool.query("select * from services order by name");res.json(rows);
 });
