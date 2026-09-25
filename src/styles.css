@@ -725,3 +725,56 @@ footer span:hover{color:var(--ink)}
 .adminProductForm{display:grid;grid-template-columns:1fr 1.4fr .8fr .8fr auto;gap:9px;padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;margin-bottom:14px}.adminProductForm button{border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
 @media(max-width:1000px){.adminNav{grid-template-columns:repeat(2,1fr)}.adminTableRow{grid-template-columns:1.5fr 1fr 1fr auto}.adminTableRow>span:nth-of-type(2){display:none}.adminCommerceCard{grid-template-columns:1fr 1fr}.adminProductForm{grid-template-columns:1fr 1fr}.adminProductForm button{grid-column:1/-1}}
 @media(max-width:650px){.adminModuleHead{align-items:flex-start;flex-direction:column}.adminTableRow{grid-template-columns:1fr auto}.adminTableRow>span,.adminTableRow>b{display:none}.adminTableRow button{justify-self:end}.adminCommerceCard{grid-template-columns:1fr}.adminRowActions button{flex:1}.adminProductForm,.adminEdit{grid-template-columns:1fr}.adminDetailGrid{grid-template-columns:1fr}.adminEdit>div{grid-column:auto}}
+
+/* Portal navigation refinement */
+.customerPortal{background:#f6f7f9}
+.portalSidebar{padding:24px 16px;width:264px}
+.portalBrand{padding:4px 10px 30px;font-size:15px}
+.portalAccount{padding:13px;margin:0 2px 28px;border-radius:16px}
+.portalNav{gap:6px}
+.portalNavItem{min-height:44px;padding:11px 12px;gap:12px;font-size:11px}
+.portalNavItem span{width:auto;flex:1;font-size:11px}
+.portalNavItem .navChevron{opacity:.35;transition:transform .2s ease,opacity .2s ease}
+.portalNavItem:hover .navChevron,.portalNavItem.active .navChevron{opacity:1;transform:translateX(2px)}
+.portalBottom{padding-top:16px}
+.portalContent{margin-left:264px;padding:0 42px 80px}
+.portalTopbar{position:sticky;top:0;z-index:20;max-width:none;margin:0 -42px;padding:20px 42px 19px;min-height:78px;box-sizing:border-box;align-items:center;gap:24px;background:rgba(246,247,249,.9);border-bottom:1px solid #e5e7eb;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.portalTopbar>div:first-child{min-width:220px}
+.portalTopbar h1{font-size:clamp(30px,3.2vw,48px);margin:7px 0 0;line-height:1.02}
+.portalGlobalNav{display:flex;align-items:center;justify-content:center;gap:4px;margin-left:auto;padding:5px;background:#fff;border:1px solid #e4e7eb;border-radius:14px;box-shadow:0 5px 18px rgba(17,24,39,.045)}
+.portalGlobalNav a{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:9px;color:#747c86;text-decoration:none;font-size:10px;font-weight:800;white-space:nowrap;transition:background .18s ease,color .18s ease,transform .18s ease}
+.portalGlobalNav a:hover{background:#f4f5f7;color:#111827;transform:translateY(-1px)}
+.portalTopActions{padding-top:0;margin-left:2px;gap:12px}
+.onlineDot{padding:8px 10px;border:1px solid #dfe8e2;background:#f7fbf8;border-radius:999px}
+.topAvatar{width:40px;height:40px;border-radius:13px;box-shadow:0 5px 16px rgba(17,24,39,.1)}
+.portalIntro{margin:30px auto 34px}
+.portalIntro p{font-size:14px;line-height:1.7}
+.portalStats{gap:14px;margin-bottom:18px}
+.portalStats article{padding:20px;border-radius:16px}
+@media(max-width:1050px){
+ .portalContent{padding:0 28px 70px}
+ .portalTopbar{margin:0 -28px;padding-left:28px;padding-right:28px}
+ .portalTopbar>div:first-child{min-width:180px}
+ .portalGlobalNav a{padding:8px 9px}
+ .onlineDot{display:none}
+}
+@media(max-width:900px){
+ .portalSidebar{padding:15px}
+ .portalBrand{padding:3px 8px 15px}
+ .portalAccount{margin-bottom:13px}
+ .portalContent{padding:0 22px 55px}
+ .portalTopbar{position:relative;margin:0 -22px;padding:18px 22px;min-height:0;display:grid;grid-template-columns:1fr auto;gap:15px}
+ .portalGlobalNav{grid-column:1/-1;grid-row:2;justify-content:flex-start;overflow-x:auto;max-width:100%;margin:0}
+ .portalTopActions{grid-column:2;grid-row:1}
+ .portalIntro{margin-top:24px}
+}
+@media(max-width:560px){
+ .portalContent{padding:0 15px 45px}
+ .portalTopbar{margin:0 -15px;padding:16px 15px;grid-template-columns:1fr auto}
+ .portalTopbar h1{font-size:34px}
+ .portalGlobalNav{border-radius:12px}
+ .portalGlobalNav a{font-size:9px;padding:8px 10px}
+ .portalTopActions{gap:0}
+ .topAvatar{width:36px;height:36px}
+ .portalIntro{margin:20px auto 25px}
+}
