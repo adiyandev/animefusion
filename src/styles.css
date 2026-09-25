@@ -319,3 +319,8 @@ footer span:hover{color:var(--ink)}
 .authNote{display:flex;align-items:flex-start;gap:5px;color:#9a9fa7;font-size:7.5px;line-height:1.5;margin-top:17px}.authNote svg{color:#287a4b;flex:0 0 auto}
 @media(max-width:900px){.authShell{grid-template-columns:1fr;gap:45px;max-width:620px}.authIntro h1{font-size:62px}.authIntro>p{max-width:620px}.authBenefits{margin-top:25px}}
 @media(max-width:620px){.authPage{padding:45px 0 65px}.authShell{width:min(100% - 28px,500px)}.authIntro h1{font-size:50px}.authIntro>p{font-size:13px}.authCard{padding:21px;border-radius:19px}.authCardHead h2{font-size:24px}}
+
+.authAlt .googleLogo{position:relative;width:19px;height:19px;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 25% 50%,#fbbc05 50% 75%,#ea4335 75%);border-radius:50%;display:block;flex:0 0 auto}
+.authAlt .googleLogo:after{content:"";position:absolute;inset:4px;background:#fff;border-radius:50%}
+.authAlt .googleLogo:before{content:"";position:absolute;right:-1px;top:8px;width:9px;height:4px;background:#4285f4;z-index:2}
+.authAlt .googleLogo i{display:none}
