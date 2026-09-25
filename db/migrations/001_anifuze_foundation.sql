@@ -45,12 +45,13 @@ create table if not exists services (
 create table if not exists orders (
  id uuid primary key default gen_random_uuid(),
  user_id uuid not null references users(id) on delete restrict,
- status text not null default 'pending' check(status in ('pending','paid','cancelled','refunded')),
+ status text not null default 'pending' check(status in ('pending','approved','rejected','paid','cancelled','refunded')),
  currency text not null default 'USD',
  subtotal_cents integer not null default 0 check(subtotal_cents>=0),
  discount_cents integer not null default 0 check(discount_cents>=0),
  total_cents integer not null default 0 check(total_cents>=0),
  payment_provider text,
+ payment_method text not null default 'card',
  payment_reference text,
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now()
