@@ -331,3 +331,151 @@ footer span:hover{color:var(--ink)}
 
 /* Checkout receipt */
 .summaryLine b s{color:#9aa0a8;font-size:10px;font-weight:700;margin-right:5px}.summaryDiscount{display:flex;justify-content:space-between;align-items:center;padding:11px 0;color:#287a4b;font-size:10px;font-weight:800;border-top:1px dashed #e3e6e9}.summaryDiscount b{color:#287a4b}.summaryTotal strong{font-size:22px!important}.orderReceipt{margin-top:18px;border:1px solid #dfe2e6;border-radius:15px;background:#fbfcfd;padding:15px;animation:receiptIn .25s ease}.receiptSuccess{display:flex;align-items:center;gap:6px;color:#287a4b;font-size:8px;font-weight:900;letter-spacing:.08em}.orderReceipt h3{font-size:17px;margin:8px 0 4px}.orderReceipt>p{font-size:9px;color:#858c95;line-height:1.5;margin:0 0 13px}.receiptRow,.receiptGrand,.receiptMethod{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #eceef0;font-size:9px}.receiptRow span,.receiptMethod span{color:#858c95}.receiptRow b,.receiptMethod b{font-size:9px;text-align:right}.receiptRow .mutedPrice{color:#9aa0a8;text-decoration:line-through}.receiptGrand{margin-top:3px;padding:12px 0}.receiptGrand span{font-weight:800}.receiptGrand strong{font-size:15px}.receiptMethod{padding-bottom:0}.receiptMethod b{background:#f1f3f5;border-radius:999px;padding:5px 8px}@keyframes receiptIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+
+/* Mobile support — all AnimeFusion pages */
+@media(max-width:900px){
+  .nav{width:calc(100% - 24px);margin-top:10px}
+  .navIn{gap:12px}
+  .brand{font-size:14px;min-width:0}
+  .brandMark{width:31px;height:31px}
+  .navCta{margin-left:auto;white-space:nowrap}
+  .docsGrid{grid-template-columns:1fr;gap:0}
+  .docsToc{position:relative;top:auto;padding:24px 0 0}
+  .docsTocInner{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .docsToc label{grid-column:1/-1;padding:13px 14px;border-bottom:1px solid var(--line)}
+  .docsToc a{padding:10px 12px;font-size:8px;border-bottom:1px solid var(--line)}
+  .docsArticle{padding-top:35px}
+  .serviceHeroNewGrid,.marketHeroGrid{grid-template-columns:1fr;gap:45px}
+  .serviceHeroPanel{max-width:680px}
+  .serviceIncludedBar>.container{grid-template-columns:repeat(3,1fr)}
+  .serviceIncludedBar .container>div:nth-child(4){border-left:0;border-top:1px solid var(--line)}
+  .serviceIncludedBar .container>div:nth-child(5),.serviceIncludedBar .container>div:nth-child(6){border-top:1px solid var(--line)}
+  .serviceProductGrid{grid-template-columns:1fr 1fr}
+  .journey{grid-template-columns:1fr 1fr}
+  .journey>i{display:none}
+  .checkoutGrid{grid-template-columns:1fr}
+  .checkoutSummary{position:relative;top:auto;order:-1}
+  .marketRuleGrid{grid-template-columns:1fr}
+  .marketRuleGrid>div+div{border-left:0;border-top:1px solid var(--line)}
+  .templateGrid{grid-template-columns:1fr 1fr}
+  .authShell{grid-template-columns:1fr;gap:45px}
+}
+@media(max-width:620px){
+  body{overflow-x:hidden}
+  .container{width:calc(100% - 28px)}
+  .nav{height:60px;border-radius:15px}
+  .navIn{padding:0 4px}
+  .nav nav{display:none}
+  .brand{font-size:13px;gap:7px}
+  .brandMark{width:29px;height:29px;border-radius:8px;font-size:10px}
+  .navCta{padding:9px 12px;font-size:10px;gap:5px}
+  .navCta svg{width:13px;height:13px}
+  .hero{padding:48px 0 38px}
+  .hero h1,.serviceHeroNew h1,.marketHero h1,.authIntro h1{font-size:clamp(42px,13vw,58px);line-height:.94}
+  .heroCopy>p,.serviceHeroNew p,.marketHero p{font-size:14px;line-height:1.65}
+  .actions{width:100%}
+  .actions>a,.serviceHeroActions .primary{width:100%;justify-content:center}
+  .trustLine{gap:9px;font-size:9px}
+  .visual{min-height:245px;margin-top:18px}
+  .dashboard{width:100%;transform:none}
+  .window{height:35px;padding:0 11px}
+  .window i{width:6px;height:6px}
+  .dash{grid-template-columns:72px 1fr;min-height:235px}
+  .dash aside{padding:9px 5px}
+  .fakeLogo{width:55px;height:9px;margin:0 4px 13px}
+  .side{height:26px;padding:0 5px;font-size:6px;gap:5px}
+  .side span{width:8px;height:8px}
+  .dashMain{padding:9px}
+  .dashTop{margin-bottom:10px}
+  .dashTop b{font-size:10px}.dashTop span{font-size:6px}
+  .stats{gap:5px}.stat{padding:8px;border-radius:8px}.stat small{font-size:5px;margin-bottom:4px}.stat strong{font-size:13px}
+  .chart{height:92px;padding:8px;border-radius:9px}.chartTitle{width:70px;height:6px}.bars{height:62px;gap:4px;margin-top:7px}
+  .rows{margin-top:6px;border-radius:9px}.row{padding:6px 7px;font-size:5px}.row em{padding:2px 4px}
+  .metrics{margin-bottom:60px}
+  .metric{padding:17px 13px}.metric strong{font-size:23px}.metric span{font-size:8px}
+  .section{padding-bottom:65px}
+  .sectionHead h2,.journeyHead h2,.serviceDetails h2,.docsIntro h2{font-size:31px}
+  .sectionHead>p,.lead{font-size:13px;line-height:1.65}
+  .cards{gap:12px}
+  .card{padding:20px;border-radius:15px}
+  .card h3{font-size:17px}.card p{font-size:11px;line-height:1.6}
+  .splitGrid{gap:30px}
+  .codeCard,.deployDemo{border-radius:15px}
+  .codeCard pre,.deployDemo pre{font-size:9px;padding:17px;line-height:1.65}
+  .package{min-height:220px;padding:21px;border-radius:15px}.package h3{font-size:19px;margin:27px 0 17px}
+  .guarantees{border-radius:14px}
+  .serviceHeroNew{padding:55px 0 45px}
+  .serviceHeroNewGrid{gap:30px}
+  .serviceHeroPanel{padding:18px;border-radius:17px}
+  .servicePanelMain{font-size:22px}
+  .serviceIncludedBar>.container{grid-template-columns:1fr 1fr}
+  .serviceIncludedBar .container>div{padding:14px 10px}
+  .serviceIncludedBar .container>div:nth-child(odd){border-left:0}
+  .serviceIncludedBar .container>div:nth-child(n+3){border-top:1px solid var(--line)}
+  .serviceIncludedBar .container>div:nth-child(3),.serviceIncludedBar .container>div:nth-child(5){border-left:0}
+  .serviceProductGrid{grid-template-columns:1fr}
+  .serviceProduct{padding:20px;border-radius:15px}
+  .journey{grid-template-columns:1fr;gap:10px}
+  .journey>div{padding:17px;border-radius:13px}
+  .serviceCTABox{padding:27px 20px}
+  .serviceCTABox h2{font-size:30px}
+  .servicePackageNote{padding:19px;border-radius:15px}
+  .checkoutHero{padding:52px 0 38px}
+  .checkoutHero h1{font-size:clamp(42px,12vw,58px)}
+  .checkoutHero p{font-size:12px;line-height:1.65}
+  .checkoutBody{padding:30px 0 65px}
+  .checkoutCard{padding:18px;border-radius:15px}
+  .checkoutCardHead{margin-bottom:17px;gap:12px}
+  .checkoutCardHead h2{font-size:18px}
+  .checkoutCardHead>span{font-size:6px;text-align:right}
+  .formGrid{grid-template-columns:1fr;gap:12px}
+  .formGrid label.full{grid-column:auto}
+  .paymentMethods{grid-template-columns:1fr}
+  .paymentMethod{padding:13px}
+  .checkoutSummary{padding:18px;border-radius:15px}
+  .summaryTop b{font-size:18px}
+  .selectedTemplate{padding:13px}.templateSwatch{width:42px;height:42px}
+  .summaryLine{font-size:9px}
+  .summaryTotal strong{font-size:20px!important}
+  .orderReceipt{padding:13px}
+  .receiptGrand strong{font-size:14px}
+  .marketHero{padding:55px 0 45px}
+  .marketHeroGrid{gap:30px}
+  .marketPreview{transform:none;border-radius:17px}
+  .marketPreview:hover{transform:none}
+  .marketWindow{height:37px}
+  .marketMock{min-height:220px}
+  .marketRuleGrid>div{padding:16px 14px}
+  .templateGrid{grid-template-columns:1fr}
+  .templateVisual{height:190px}
+  .templateInfo{padding:17px}
+  .templateInfo p{font-size:10px;line-height:1.55}
+  .templatePurchase{font-size:11px}
+  .templateBoundary{padding:18px;border-radius:15px}
+  .docsHero{padding:55px 0 42px}
+  .docsHero h1{font-size:clamp(42px,12vw,58px)}
+  .docsHero p{font-size:13px;line-height:1.65}
+  .docsHeroMeta{gap:10px;margin-top:22px}
+  .docsHeroMeta span{font-size:8px}
+  .docsTocInner{grid-template-columns:1fr}
+  .docsToc label{grid-column:auto}
+  .docsToc a{font-size:8px}
+  .docsArticle{padding-top:25px}
+  .docsStep{grid-template-columns:38px 1fr;gap:12px;padding:26px 0}
+  .docsStepNo{font-size:10px}
+  .docsStepTitle{display:block}.docsStepTitle h3{font-size:18px}.docsStepTitle span{display:inline-block;margin-top:7px}
+  .docsStep p,.docsReference p{font-size:11px;line-height:1.7}
+  .docsMiniGrid,.boundaryGrid,.docsLifecycle{grid-template-columns:1fr}
+  .docsReference{padding:28px 0}
+  .authPage{padding:45px 0 65px}
+  .authShell{width:calc(100% - 28px);gap:30px}
+  .authIntro h1{font-size:clamp(43px,13vw,56px)}
+  .authIntro>p{font-size:12px;line-height:1.7}
+  .authBenefits{margin-top:24px}
+  .authCard{padding:18px;border-radius:16px}
+  .authCardHead h2{font-size:22px}
+  .authTabs button{padding:9px 11px}
+  .authAlt{font-size:9px}
+  .foot{font-size:9px}
+}
