@@ -327,14 +327,8 @@ function CustomerDashboard(){
  const serviceList=remoteServices.map(s=>{const license=remoteLicenses.find(l=>l.service_name===s.name);return{id:s.id,title:s.name,desc:s.description||"AniFuze service",status:s.status,icon:BriefcaseBusiness,product:s.name,version:s.version||"1.0",licenseKey:license?.license_key||"",delivery:s.metadata?.delivery||"Verified package"}});
  const licenseList=remoteLicenses.map(l=>({id:l.id,name:l.service_name||"AniFuze License",type:l.license_type,key:l.license_key,status:l.status,issued:new Date(l.issued_at).toLocaleDateString(),scope:l.scope||"Production deployment",service:l.service_name||"AniFuze"}));
  const installers=[
-  {name:"AniFuze Complete",version:"v1.0",size:"48.2 MB",status:"READY",file:"anifuze-complete-installer-v1.0.txt",contents:"AniFuze Complete installer manifest
-Version: 1.0
-License: ANIFUZE_8K2M7Q4P91
-Delivery: SHA-256 verified"},
-  {name:"AniFuze Admin",version:"v1.0",size:"31.7 MB",status:"READY",file:"anifuze-admin-installer-v1.0.txt",contents:"AniFuze Admin installer manifest
-Version: 1.0
-License: ANIFUZE_3N6VK8DS15QA
-Delivery: Verified package"}
+  {name:"AniFuze Complete",version:"v1.0",size:"48.2 MB",status:"READY",file:"anifuze-complete-installer-v1.0.txt",contents:"AniFuze Complete installer manifest\nVersion: 1.0\nLicense: ANIFUZE_8K2M7Q4P91\nDelivery: SHA-256 verified"},
+  {name:"AniFuze Admin",version:"v1.0",size:"31.7 MB",status:"READY",file:"anifuze-admin-installer-v1.0.txt",contents:"AniFuze Admin installer manifest\nVersion: 1.0\nLicense: ANIFUZE_3N6VK8DS15QA\nDelivery: Verified package"}
  ];
  const downloadInstaller=(item)=>{
   const blob=new Blob([item.contents],"text/plain");
