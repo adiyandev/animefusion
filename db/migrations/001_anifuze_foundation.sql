@@ -5,7 +5,7 @@ create table if not exists users (
  email text not null unique,
  name text not null,
  password_hash text,
- role text not null default 'customer' check(role in ('customer','admin')),
+ role text not null default 'customer' check(role in ('customer','owner','admin','support','developer','finance')),
  email_verified_at timestamptz,
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now()
@@ -106,3 +106,34 @@ create index if not exists idx_orders_user on orders(user_id);
 create index if not exists idx_licenses_user on licenses(user_id);
 create index if not exists idx_support_cases_user on support_cases(user_id);
 create index if not exists idx_support_messages_case on support_messages(case_id);
+
+
+create table if not exists admin_permissions (
+ id uuid primary key default gen_random_uuid(),
+ role text not null,
+ permission text not null,
+ unique(role,permission)
+);
+
+create table if not exists audit_logs (
+ id uuid primary key default gen_random_uuid(),
+ actor_user_id uuid references users(id) on delete set null,
+ action text not null,
+ entity_type text,
+ entity_id uuid,
+ metadata jsonb not null default '{}'::jsonb,
+ ip_address inet,
+ user_agent text,
+ created_at timestamptz not null default now()
+);
+
+create index if not exists idx_audit_logs_created on audit_logs(created_at desc);
+create index if not exists idx_audit_logs_actor on audit_logs(actor_user_id);
+
+insert into admin_permissions(role,permission) values
+ ('owner','*'),
+ ('admin','customers.read'),('admin','orders.read'),('admin','orders.manage'),('admin','licenses.read'),('admin','support.manage'),('admin','system.read'),
+ ('support','customers.read'),('support','support.manage'),('support','orders.read'),
+ ('developer','system.read'),('developer','providers.manage'),('developer','releases.manage'),
+ ('finance','customers.read'),('finance','orders.read'),('finance','orders.manage')
+on conflict(role,permission) do nothing;
