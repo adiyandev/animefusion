@@ -48,7 +48,9 @@ io.use(async(socket,next)=>{
 io.on("connection",socket=>{
  socket.on("case:join",async(caseId,ack)=>{
   try{
-   const {rows}=await pool.query("select id,case_number,subject,status from support_cases where id=$1 and (user_id=$2 or $2::text in ('owner','admin','support','developer','finance'))",[caseId,socket.user.id]);
+   const {rows}=await pool.query("select id,case_number,subject,status,user_id from support_cases where id=$1",[caseId]);
+   const allowed=rows[0]&&(["owner","admin","support","developer","finance"].includes(socket.user.role)||rows[0].user_id===socket.user.id);
+   if(!allowed)return ack?.({ok:false,error:"Case not found"});
    if(!rows[0])return ack?.({ok:false,error:"Case not found"});
    socket.join("case:"+caseId);ack?.({ok:true,case:rows[0]});
   }catch(error){ack?.({ok:false,error:"Unable to join case"});}
