@@ -825,3 +825,10 @@ footer span:hover{color:var(--ink)}
 
 .adminRowActions button:disabled,.adminTableRow button:disabled{opacity:.42;cursor:not-allowed;background:#eef0f2!important;color:#7b8490!important;border-color:#e1e5e9!important;box-shadow:none!important;transform:none!important}
 .adminRowActions button.adminActionDone,.adminTableRow button.adminActionDone{opacity:.7;background:#eef0f2!important;color:#68717d!important;border-color:#dfe3e7!important;cursor:default;box-shadow:none!important}
+
+/* ChatGPT-style support composer */
+.adminCaseComposer{display:flex;align-items:flex-end;gap:10px;background:#fff;border:1px solid #e1e5e9;border-radius:18px;padding:8px 8px 8px 14px;box-shadow:0 4px 18px rgba(17,24,39,.06)}
+.adminCaseComposer textarea{border:0!important;box-shadow:none!important;background:transparent;min-height:38px;max-height:140px;padding:10px 4px;outline:0;resize:none;line-height:1.45}
+.adminCaseComposer button.adminApprove{width:36px;height:36px;min-width:36px;padding:0;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#111827;color:#fff;box-shadow:none}
+.adminCaseComposer button.adminApprove:hover{transform:none;box-shadow:none;background:#262d38}
+.adminCaseComposer button.adminApprove svg{margin:0}
