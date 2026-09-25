@@ -1,4 +1,4 @@
-const API_BASE=(import.meta.env.VITE_API_URL||"").replace(/\/$/,"");
+const API_BASE=(import.meta.env.VITE_API_URL||"https://animefusion.onrender.com").replace(/\/$/,"");
 
 export function getAuthToken(){return sessionStorage.getItem("anifuze_api_token")||"";}
 export function setAuthSession(data){
