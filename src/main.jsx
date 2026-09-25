@@ -39,10 +39,11 @@ function AskAnything(){
        <div className="supportDrop"><Download size={17}/><div><b>Drop files or images here</b><span>They'll be added to your conversation</span></div></div>
      </div>
      <div className="supportComposer">
-       <input value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")send()}} placeholder="Message…"/>
-       <button type="button" aria-label="Attach file"><Download size={15}/></button>
-       <button type="button" aria-label="Emoji">☺</button>
-       <button type="button" onClick={send} aria-label="Send message"><ArrowRight size={15}/></button>
+       <div className="supportInputCapsule">
+         <input value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")send()}} placeholder="Message…"/>
+         <button type="button" aria-label="Upload file"><Download size={15}/></button>
+         <button type="button" onClick={send} aria-label="Send message"><ArrowRight size={15}/></button>
+       </div>
      </div>
    </div>}
  </>
