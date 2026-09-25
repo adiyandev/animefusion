@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from "react";
 import{createRoot}from"react-dom/client";
-import{ArrowRight,Check,Download,KeyRound,Layers3,ShieldCheck,Store,Zap,MonitorCog,Code2,PlaySquare}from"lucide-react";
+import{ArrowRight,Check,Download,KeyRound,Layers3,ShieldCheck,Store,Zap,MonitorCog,Code2,PlaySquare,LayoutDashboard,BriefcaseBusiness,KeyRound as LicenseIcon,DownloadCloud,LifeBuoy,Settings,LogOut,ChevronRight,PackageCheck}from"lucide-react";
 import"./styles.css";
 const services=[["Services & packages",Layers3,"Discover services and packages in one polished experience."],["Licenses & product keys",KeyRound,"Keep purchases connected to real licenses and product keys."],["Verified delivery",Download,"Connect configuration and installers to the same customer journey."]];
 function AskAnything(){return <div className="askAnything" role="search"><div className="askIcon"><Zap size={15}/></div><input aria-label="Continue conversation" placeholder="Continue conversation"/><button className="askAttach" type="button" aria-label="Attach file"><Download size={15}/></button><button className="askSend" type="button" aria-label="Send"><ArrowRight size={17}/></button></div>}
