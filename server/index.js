@@ -338,14 +338,26 @@ app.get("/api/licenses",auth,async(req,res)=>{
 
 app.post("/api/orders",auth,async(req,res)=>{
  const {template="Complete Package",paymentMethod="card"}=req.body||{};
+ const allowedMethods=["card","google","whatsapp"];
+ if(!allowedMethods.includes(paymentMethod))return res.status(400).json({error:"Unsupported payment method"});
  const product=await pool.query("select id,name,price_cents,currency from products where slug='complete-package' and active=true limit 1");
  if(!product.rows[0])return res.status(503).json({error:"The AniFuze product catalog is not configured"});
  const p=product.rows[0];
  const subtotalCents=7000;
  const discountCents=Math.max(0,subtotalCents-p.price_cents);
  const totalCents=p.price_cents;
- const {rows}=await pool.query("insert into orders(user_id,status,currency,subtotal_cents,discount_cents,total_cents,payment_provider,payment_method,payment_status,product_id,metadata) values($1,'pending',$2,$3,$4,$5,$6,$7,$8,'pending',$9,$10) returning *",[req.user.id,p.currency,subtotalCents,discountCents,totalCents,paymentMethod==="whatsapp"?"whatsapp":"checkout",paymentMethod,p.id,JSON.stringify({template,product:p.name})]);
- res.status(201).json({...rows[0],template});
+ try{
+  const {rows}=await pool.query(
+   "insert into orders(user_id,status,currency,subtotal_cents,discount_cents,total_cents,payment_provider,payment_method,payment_status,product_id,metadata) values($1,'pending',$2,$3,$4,$5,$6,$7,'pending',$8,$9) returning *",
+   [req.user.id,p.currency,subtotalCents,discountCents,totalCents,paymentMethod==="whatsapp"?"whatsapp":"checkout",paymentMethod,p.id,JSON.stringify({template,product:p.name})]
+  );
+  if(!rows[0])return res.status(500).json({error:"Unable to create order"});
+  await audit(req,"order.create","order",rows[0].id,{payment_method:paymentMethod,product_id:p.id});
+  res.status(201).json({...rows[0],template});
+ }catch(error){
+  console.error("Order creation failed:",error);
+  res.status(500).json({error:"Unable to create order"});
+ }
 });
 
 app.get("/api/orders",auth,async(req,res)=>{
