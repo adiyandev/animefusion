@@ -21,9 +21,10 @@ function AskAnything(){
    <button className="supportLauncher" onClick={()=>setOpen(v=>!v)} aria-label="Open AniFuze support"><span className="dynamicIslandDot"/><span className="dynamicIslandLabel">{open?"AniFuze Support":"Support"}</span><span className="dynamicIslandStatus">• {open?"Online":"2h"}</span><ChevronDown size={12}/></button>
    {open&&<div className="supportChat">
      <div className="supportChatHead">
-       <div className="supportAgentHead">
+       <div className="supportDynamicIsland">
          <div className="supportAvatar">AF</div>
-         <div><b>AniFuze Support</b><span><i/> Online</span></div>
+         <div className="supportIslandText"><b>AniFuze Support</b><span><i/> Online</span></div>
+         <span className="supportIslandStatus">• Online</span>
        </div>
        <button onClick={()=>setOpen(false)} aria-label="Close support">×</button>
      </div>
