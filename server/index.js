@@ -128,7 +128,13 @@ app.get("/api/licenses",auth,async(req,res)=>{
   res.json(rows);
 });
 
-app.post("/api/orders",auth,async(req,res)=>{const {subtotalCents=5600,discountCents=1400,totalCents=5600,currency="USD",template="Complete Package",paymentMethod="card"}=req.body||{};const {rows}=await pool.query("insert into orders(user_id,status,currency,subtotal_cents,discount_cents,total_cents,payment_provider,payment_method) values($1,'pending',$2,$3,$4,$5,$6,$7,$8) returning *",[req.user.id,currency,subtotalCents,discountCents,totalCents,paymentMethod==="whatsapp"?"whatsapp":"checkout",paymentMethod]);res.status(201).json({...rows[0],template});});
+app.post("/api/orders",auth,async(req,res)=>{
+ const {subtotalCents=5600,discountCents=1400,totalCents=5600,currency="USD",template="Complete Package",paymentMethod="card"}=req.body||{};
+ const product=await pool.query("select id,name,price_cents,currency from products where (name=$1 or slug=$1) and active=true limit 1",[template]);
+ const productId=product.rows[0]?.id||null;
+ const {rows}=await pool.query("insert into orders(user_id,status,currency,subtotal_cents,discount_cents,total_cents,payment_provider,payment_method,payment_status,product_id,metadata) values($1,'pending',$2,$3,$4,$5,$6,$7,$8,'pending',$9,$10) returning *",[req.user.id,currency,subtotalCents,discountCents,totalCents,paymentMethod==="whatsapp"?"whatsapp":"checkout",paymentMethod,productId,JSON.stringify({template})]);
+ res.status(201).json({...rows[0],template});
+});
 
 app.get("/api/orders",auth,async(req,res)=>{
   const {rows}=await pool.query("select * from orders where user_id=$1 order by created_at desc",[req.user.id]);res.json(rows);
