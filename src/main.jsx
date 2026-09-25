@@ -3,7 +3,49 @@ import{createRoot}from"react-dom/client";
 import{ArrowRight,Check,Download,KeyRound,Layers3,ShieldCheck,Store,Zap,MonitorCog,Code2,PlaySquare,LayoutDashboard,BriefcaseBusiness,KeyRound as LicenseIcon,DownloadCloud,LifeBuoy,Settings,LogOut,ChevronRight,PackageCheck}from"lucide-react";
 import"./styles.css";
 const services=[["Services & packages",Layers3,"Discover services and packages in one polished experience."],["Licenses & product keys",KeyRound,"Keep purchases connected to real licenses and product keys."],["Verified delivery",Download,"Connect configuration and installers to the same customer journey."]];
-function AskAnything(){const [open,setOpen]=useState(false);const [message,setMessage]=useState("");const [messages,setMessages]=useState([{from:"support",text:"Hey! Welcome to AniFuze support. How can we help with your deployment?"}]);const send=()=>{const text=message.trim();if(!text)return;setMessages(m=>[...m,{from:"you",text}]);setMessage("");setTimeout(()=>setMessages(m=>[...m,{from:"support",text:"Thanks — your message is in the support queue. An AniFuze support agent can continue this conversation here."}]),500)};return <><button className="supportLauncher" onClick={()=>setOpen(v=>!v)} aria-label="Open AniFuze support"><LifeBuoy/><span>Support</span></button>{open&&<div className="supportChat"><div className="supportChatHead"><div><b>AniFuze Support</b><span><i/> Support team online</span></div><button onClick={()=>setOpen(false)} aria-label="Close support">×</button></div><div className="supportMessages">{messages.map((m,i)=><div className={"supportBubble "+m.from} key={i}>{m.text}</div>)}</div><div className="supportComposer"><input value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")send()}} placeholder="Write a message…"/><button type="button" onClick={send} aria-label="Send message"><ArrowRight size={15}/></button></div></div>}</>}
+function AskAnything(){
+ const [open,setOpen]=useState(false);
+ const [message,setMessage]=useState("");
+ const [email,setEmail]=useState("");
+ const [messages,setMessages]=useState([
+   {from:"support",text:"Hey! Welcome to AniFuze support. How can we help with your deployment?"}
+ ]);
+ const send=()=>{
+   const text=message.trim();
+   if(!text)return;
+   setMessages(m=>[...m,{from:"you",text}]);
+   setMessage("");
+   setTimeout(()=>setMessages(m=>[...m,{from:"support",text:"Thanks — your message is in the support queue. An AniFuze support agent can continue this conversation here."}]),700)
+ };
+ return <>
+   <button className="supportLauncher" onClick={()=>setOpen(v=>!v)} aria-label="Open AniFuze support"><LifeBuoy size={17}/><span>Support</span></button>
+   {open&&<div className="supportChat">
+     <div className="supportChatHead">
+       <div className="supportAgentHead">
+         <div className="supportAvatar">AF</div>
+         <div><b>AniFuze Support</b><span><i/> Online</span></div>
+       </div>
+       <button onClick={()=>setOpen(false)} aria-label="Close support">×</button>
+     </div>
+     <div className="supportMessages">
+       <div className="supportNotice">AniFuze typically replies within a few hours.</div>
+       {messages.map((m,i)=><div className={"supportBubble "+m.from} key={i}>{m.text}</div>)}
+       <div className="supportEmailCard">
+         <div><b>Want a reply by email?</b><span>Leave your email and we'll keep the conversation connected.</span></div>
+         <div className="supportEmailInput"><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@example.com"/><button type="button" aria-label="Submit email"><ArrowRight size={15}/></button></div>
+       </div>
+       <div className="supportWaiting"><span>◷</span> Waiting for a teammate</div>
+       <div className="supportDrop"><Download size={17}/><div><b>Drop files or images here</b><span>They'll be added to your conversation</span></div></div>
+     </div>
+     <div className="supportComposer">
+       <input value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")send()}} placeholder="Message…"/>
+       <button type="button" aria-label="Attach file"><Download size={15}/></button>
+       <button type="button" aria-label="Emoji">☺</button>
+       <button type="button" onClick={send} aria-label="Send message"><ArrowRight size={15}/></button>
+     </div>
+   </div>}
+ </>
+}
 
 function Nav(){const go=(e,path)=>{e.preventDefault();window.history.pushState({},"",path);window.dispatchEvent(new PopStateEvent("popstate"))};return <header className="nav"><div className="container navIn"><a className="brand" href="/" onClick={e=>go(e,"/")}><span className="brandMark">AF</span>AniFuze</a><nav><a href="/services" onClick={e=>go(e,"/services")}>Services</a><a href="/workflow" onClick={e=>go(e,"/workflow")}>How it works</a><a href="/marketplace" onClick={e=>go(e,"/marketplace")}>Marketplace</a><a href="/support" onClick={e=>go(e,"/support")}>Support</a></nav><a className="navCta" href="/auth" onClick={e=>go(e,"/auth")}>Get Started <ArrowRight size={15}/></a></div></header>}
 function Dashboard(){return <div className="visual"><div className="glow"/><div className="dashboard"><div className="window"><i/><i/><i/></div><div className="dash"><aside><div className="fakeLogo"/>{["Overview","Services","Licenses","Installers","Support"].map((x,i)=><div className={"side "+(!i?"active":"")} key={x}><span/>{x}</div>)}</aside><div className="dashMain"><div className="dashTop"><b>Overview</b><span>Customer workspace</span></div><div className="stats">{[["ACTIVE SERVICES","04"],["LICENSES","08"],["SUPPORT","02"]].map(x=><div className="stat" key={x[0]}><small>{x[0]}</small><strong>{x[1]}</strong></div>)}</div><div className="chart"><div className="chartTitle"/><div className="bars">{[35,52,43,69,61,88].map((h,i)=><i style={{height:h+"%"}} key={i}/>)}</div></div><div className="rows">{[["AniFuze Pro","License","Active"],["AniFuze Tools","Service","Ready"],["Installer","Download","Verified"]].map(r=><div className="row" key={r[0]}><b>{r[0]}</b><span>{r[1]}</span><em>{r[2]}</em></div>)}</div></div></div></div></div>}
