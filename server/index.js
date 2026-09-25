@@ -220,6 +220,61 @@ app.post("/api/license/heartbeat",auth,async(req,res)=>{
  res.json({valid:true,status:"ACTIVE"});
 });
 
+// Phase Four — Platform, Providers, Releases, Delivery & Marketplace
+app.get("/api/admin/providers",auth,adminOnly("providers.read"),async(req,res)=>{
+ const {rows}=await pool.query("select id,slug,name,provider_type,endpoint,priority,enabled,health_status,last_checked_at,created_at,updated_at from providers order by enabled desc,priority asc,name");
+ await audit(req,"admin.providers.view");res.json(rows);
+});
+app.post("/api/admin/providers",auth,adminOnly("providers.manage"),async(req,res)=>{
+ const {slug,name,providerType="api",endpoint,priority=100,enabled=true,config={}}=req.body||{};
+ if(!slug?.trim()||!name?.trim())return res.status(400).json({error:"Slug and name are required"});
+ try{const {rows}=await pool.query("insert into providers(slug,name,provider_type,endpoint,priority,enabled,config) values($1,$2,$3,$4,$5,$6,$7) returning id,slug,name,provider_type,endpoint,priority,enabled,health_status,last_checked_at,created_at,updated_at",[slug.trim().toLowerCase(),name.trim(),providerType,endpoint?.trim()||null,Number(priority)||100,Boolean(enabled),JSON.stringify(config)]);await audit(req,"admin.provider.create","provider",rows[0].id);res.status(201).json(rows[0]);}catch(e){if(e.code==="23505")return res.status(409).json({error:"Provider slug already exists"});res.status(500).json({error:"Unable to create provider"});}});
+app.patch("/api/admin/providers/:id",auth,adminOnly("providers.manage"),async(req,res)=>{
+ const {name,endpoint,priority,enabled,healthStatus,config}=req.body||{};
+ if(healthStatus&&!["unknown","healthy","degraded","offline"].includes(healthStatus))return res.status(400).json({error:"Invalid health status"});
+ const {rows}=await pool.query("update providers set name=coalesce($1,name),endpoint=coalesce($2,endpoint),priority=coalesce($3,priority),enabled=coalesce($4,enabled),health_status=coalesce($5,health_status),config=coalesce($6,config),updated_at=now() where id=$7 returning id,slug,name,provider_type,endpoint,priority,enabled,health_status,last_checked_at,created_at,updated_at",[name?.trim()||null,endpoint?.trim()||null,Number.isInteger(Number(priority))?Number(priority):null,typeof enabled==="boolean"?enabled:null,healthStatus||null,config?JSON.stringify(config):null,req.params.id]);
+ if(!rows[0])return res.status(404).json({error:"Provider not found"});await audit(req,"admin.provider.update","provider",req.params.id);res.json(rows[0]);
+});
+app.post("/api/admin/providers/:id/health",auth,adminOnly("providers.manage"),async(req,res)=>{
+ const p=await pool.query("select * from providers where id=$1",[req.params.id]);if(!p.rows[0])return res.status(404).json({error:"Provider not found"});
+ const started=Date.now();let status="healthy",statusCode=200,error=null;
+ if(!p.rows[0].endpoint)status="unknown";else try{const response=await fetch(p.rows[0].endpoint,{method:"GET",signal:AbortSignal.timeout(8000)});statusCode=response.status;status=response.ok?"healthy":"degraded";if(!response.ok)error="Provider returned "+response.status;}catch(e){status="offline";statusCode=null;error=e.message;}
+ await pool.query("update providers set health_status=$1,last_checked_at=now(),updated_at=now() where id=$2",[status,req.params.id]);
+ await pool.query("insert into provider_requests(provider_id,user_id,action,success,status_code,latency_ms,error) values($1,$2,'health_check',$3,$4,$5,$6)",[req.params.id,req.user.id,status==="healthy",statusCode,Date.now()-started,error]);
+ await audit(req,"admin.provider.health_check","provider",req.params.id,{status});res.json({status,statusCode,latencyMs:Date.now()-started,error});
+});
+
+app.get("/api/admin/provider-requests",auth,adminOnly("providers.read"),async(req,res)=>{
+ const {rows}=await pool.query("select r.*,p.name as provider_name from provider_requests r join providers p on p.id=r.provider_id order by r.created_at desc limit 200");res.json(rows);
+});
+
+app.get("/api/admin/releases",auth,adminOnly("releases.read"),async(req,res)=>{
+ const {rows}=await pool.query("select r.*,u.name as created_by_name from releases r left join users u on u.id=r.created_by order by r.created_at desc");await audit(req,"admin.releases.view");res.json(rows);
+});
+app.post("/api/admin/releases",auth,adminOnly("releases.manage"),async(req,res)=>{
+ const {version,channel="stable",releaseNotes="",artifactUrl,checksumSha256,signature}=req.body||{};
+ if(!version?.trim())return res.status(400).json({error:"Version is required"});
+ try{const {rows}=await pool.query("insert into releases(version,channel,release_notes,artifact_url,checksum_sha256,signature,created_by) values($1,$2,$3,$4,$5,$6,$7) returning *",[version.trim(),channel,releaseNotes?.trim()||null,artifactUrl?.trim()||null,checksumSha256?.trim()||null,signature?.trim()||null,req.user.id]);await audit(req,"admin.release.create","release",rows[0].id);res.status(201).json(rows[0]);}catch(e){if(e.code==="23505")return res.status(409).json({error:"Release version already exists"});res.status(500).json({error:"Unable to create release"});}});
+app.patch("/api/admin/releases/:id",auth,adminOnly("releases.manage"),async(req,res)=>{
+ const {status,releaseNotes,artifactUrl,checksumSha256,signature}=req.body||{};if(status&&!["draft","ready","published","revoked"].includes(status))return res.status(400).json({error:"Invalid release status"});
+ const {rows}=await pool.query("update releases set status=coalesce($1,status),release_notes=coalesce($2,release_notes),artifact_url=coalesce($3,artifact_url),checksum_sha256=coalesce($4,checksum_sha256),signature=coalesce($5,signature),published_at=case when $1='published' then coalesce(published_at,now()) else published_at end,updated_at=now() where id=$6 returning *",[status||null,releaseNotes??null,artifactUrl??null,checksumSha256??null,signature??null,req.params.id]);
+ if(!rows[0])return res.status(404).json({error:"Release not found"});await audit(req,"admin.release.update","release",req.params.id,{status:rows[0].status});res.json(rows[0]);
+});
+
+app.get("/api/admin/templates",auth,adminOnly("templates.read"),async(req,res)=>{const {rows}=await pool.query("select * from templates order by active desc,created_at desc");await audit(req,"admin.templates.view");res.json(rows);});
+app.post("/api/admin/templates",auth,adminOnly("templates.manage"),async(req,res)=>{
+ const {slug,name,description,version="1.0.0",priceCents=0,previewUrl,packageUrl,checksumSha256}=req.body||{};if(!slug?.trim()||!name?.trim())return res.status(400).json({error:"Slug and name are required"});
+ try{const {rows}=await pool.query("insert into templates(slug,name,description,version,price_cents,preview_url,package_url,checksum_sha256) values($1,$2,$3,$4,$5,$6,$7,$8) returning *",[slug.trim().toLowerCase(),name.trim(),description?.trim()||null,version,Math.max(0,Number(priceCents)||0),previewUrl||null,packageUrl||null,checksumSha256||null]);await audit(req,"admin.template.create","template",rows[0].id);res.status(201).json(rows[0]);}catch(e){if(e.code==="23505")return res.status(409).json({error:"Template slug already exists"});res.status(500).json({error:"Unable to create template"});}});
+app.patch("/api/admin/templates/:id",auth,adminOnly("templates.manage"),async(req,res)=>{const {active,priceCents,packageUrl,previewUrl}=req.body||{};const {rows}=await pool.query("update templates set active=coalesce($1,active),price_cents=coalesce($2,price_cents),package_url=coalesce($3,package_url),preview_url=coalesce($4,preview_url),updated_at=now() where id=$5 returning *",[typeof active==="boolean"?active:null,Number.isInteger(Number(priceCents))?Math.max(0,Number(priceCents)):null,packageUrl||null,previewUrl||null,req.params.id]);if(!rows[0])return res.status(404).json({error:"Template not found"});await audit(req,"admin.template.update","template",req.params.id);res.json(rows[0]);});
+
+app.get("/api/templates",auth,async(req,res)=>{const {rows}=await pool.query("select id,slug,name,description,version,price_cents,currency,active,presentation_only,preview_url,checksum_sha256,metadata from templates where active=true order by created_at desc");res.json(rows);});
+app.get("/api/deliveries",auth,async(req,res)=>{const {rows}=await pool.query("select d.id,d.delivery_type,d.status,d.created_at,d.downloaded_at,r.version,t.name as template_name from deliveries d left join releases r on r.id=d.release_id left join templates t on t.id=d.template_id where d.user_id=$1 order by d.created_at desc",[req.user.id]);res.json(rows);});
+app.post("/api/admin/deliveries/:id/authorize",auth,adminOnly("delivery.manage"),async(req,res)=>{
+ const delivery=await pool.query("select * from deliveries where id=$1",[req.params.id]);if(!delivery.rows[0])return res.status(404).json({error:"Delivery not found"});
+ const raw=token();const {rows}=await pool.query("update deliveries set status='authorized',download_token_hash=$1,download_expires_at=now()+interval '24 hours' where id=$2 returning id,status,download_expires_at",[hash(raw),req.params.id]);await audit(req,"admin.delivery.authorize","delivery",req.params.id);res.json({...rows[0],downloadToken:raw});
+});
+app.get("/api/admin/deliveries",auth,adminOnly("delivery.read"),async(req,res)=>{const {rows}=await pool.query("select d.*,u.name as customer_name,u.email as customer_email,r.version,t.name as template_name from deliveries d join users u on u.id=d.user_id left join releases r on r.id=d.release_id left join templates t on t.id=d.template_id order by d.created_at desc");res.json(rows);});
+
 app.get("/api/services",auth,async(_req,res)=>{
   const {rows}=await pool.query("select * from services order by name");res.json(rows);
 });
