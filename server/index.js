@@ -3,9 +3,13 @@ import express from "express";
 import cors from "cors";
 import crypto from "node:crypto";
 import pg from "pg";
+import {createServer} from "node:http";
+import {Server as SocketIOServer} from "socket.io";
 
 const {Pool}=pg;
 const app=express();
+const httpServer=createServer(app);
+const io=new SocketIOServer(httpServer,{cors:{origin:"https://adiyandev.github.io",credentials:true,methods:["GET","POST"]}});
 const port=Number(process.env.PORT||8787);
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_SSL==="false"?false:{rejectUnauthorized:false}});
 
@@ -31,6 +35,43 @@ async function auth(req,res,next){
   next();
 }
 
+async function socketUser(socket){
+ const raw=socket.handshake.auth?.token||socket.handshake.headers.authorization?.replace(/^Bearer\\s+/i,"");
+ if(!raw)return null;
+ const {rows}=await pool.query("select u.* from sessions s join users u on u.id=s.user_id where s.token_hash=$1 and s.expires_at>now()",[hash(raw)]);
+ return rows[0]||null;
+}
+io.use(async(socket,next)=>{
+ try{const user=await socketUser(socket);if(!user)return next(new Error("Authentication required"));socket.user=user;next();}
+ catch(error){next(new Error("Authentication failed"));}
+});
+io.on("connection",socket=>{
+ socket.on("case:join",async(caseId,ack)=>{
+  try{
+   const {rows}=await pool.query("select id,case_number,subject,status from support_cases where id=$1 and (user_id=$2 or $2::text in ('owner','admin','support','developer','finance'))",[caseId,socket.user.id]);
+   if(!rows[0])return ack?.({ok:false,error:"Case not found"});
+   socket.join("case:"+caseId);ack?.({ok:true,case:rows[0]});
+  }catch(error){ack?.({ok:false,error:"Unable to join case"});}
+ });
+ socket.on("message:send",async(payload,ack)=>{
+  const caseId=payload?.caseId, body=String(payload?.body||"").trim();
+  if(!caseId||!body)return ack?.({ok:false,error:"Message is required"});
+  try{
+   const c=await pool.query("select id,user_id from support_cases where id=$1",[caseId]);
+   if(!c.rows[0])return ack?.({ok:false,error:"Case not found"});
+   const isAdmin=["owner","admin","support","developer","finance"].includes(socket.user.role);
+   if(!isAdmin&&c.rows[0].user_id!==socket.user.id)return ack?.({ok:false,error:"Access denied"});
+   const {rows}=await pool.query("insert into support_messages(case_id,sender_user_id,body) values($1,$2,$3) returning *",[caseId,socket.user.id,body]);
+   await pool.query("update support_cases set updated_at=now() where id=$1",[caseId]);
+   const message={...rows[0],sender_name:socket.user.name};
+   io.to("case:"+caseId).emit("message:new",message);
+   ack?.({ok:true,message});
+  }catch(error){console.error("Socket message failed:",error);ack?.({ok:false,error:"Unable to send message"});}
+ });
+ socket.on("typing:start",caseId=>{if(caseId)socket.to("case:"+caseId).emit("typing:start",{userId:socket.user.id,name:socket.user.name});});
+ socket.on("typing:stop",caseId=>{if(caseId)socket.to("case:"+caseId).emit("typing:stop",{userId:socket.user.id});});
+});
+ 
 app.get("/health",async(_req,res)=>{
   try{await pool.query("select 1");res.json({ok:true,service:"anifuze-api",database:"connected"});}
   catch(error){res.status(503).json({ok:false,service:"anifuze-api",database:"unavailable",error:error.message});}
@@ -394,4 +435,4 @@ app.post("/api/support/cases/:id/messages",auth,async(req,res)=>{
   await pool.query("update support_cases set updated_at=now() where id=$1",[req.params.id]);res.status(201).json(rows[0]);
 });
 
-app.listen(port,()=>console.log("AniFuze API listening on "+port));
+httpServer.listen(port,()=>console.log("AniFuze API + Socket.IO listening on "+port));
