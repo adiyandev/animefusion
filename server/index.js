@@ -109,7 +109,7 @@ app.get("/api/admin/health",auth,adminOnly("system.read"),async(_req,res)=>{
 });
 
 // Phase Two — Commerce & Customer Management
-app.get("/api/admin/customers",auth,adminOnly("customers.read"),async(req,res)=>{const {rows}=await pool.query(`select u.id,u.name,u.email,u.role,u.created_at,u.email_verified_at,count(distinct o.id)::int as order_count,coalesce(sum(case when o.status in ('approved','paid') then o.total_cents else 0 end),0)::bigint as paid_total_cents,count(distinct l.id)::int as license_count from users u left join orders o on o.user_id=u.id left join licenses l on l.user_id=u.id where u.role='customer' group by u.id order by u.created_at desc`);await audit(req,"admin.customers.view");res.json(rows);});
+app.get("/api/admin/customers",auth,adminOnly("customers.read"),async(req,res)=>{const {rows}=await pool.query(`select u.id,u.name,u.email,u.role,u.created_at,u.email_verified_at,(select count(*)::int from orders o where o.user_id=u.id) as order_count,(select coalesce(sum(o.total_cents),0)::bigint from orders o where o.user_id=u.id and o.status in ('approved','paid')) as paid_total_cents,(select count(*)::int from licenses l where l.user_id=u.id) as license_count from users u where u.role='customer' order by u.created_at desc`);await audit(req,"admin.customers.view");res.json(rows);});
 app.get("/api/admin/customers/:id",auth,adminOnly("customers.read"),async(req,res)=>{const [customer,orders,licenses]=await Promise.all([pool.query("select id,name,email,role,created_at,email_verified_at from users where id=$1 and role='customer'",[req.params.id]),pool.query("select * from orders where user_id=$1 order by created_at desc",[req.params.id]),pool.query("select l.*,s.name as service_name from licenses l left join services s on s.id=l.service_id where l.user_id=$1 order by l.issued_at desc",[req.params.id])]);if(!customer.rows[0])return res.status(404).json({error:"Customer not found"});await audit(req,"admin.customer.view","user",req.params.id);res.json({customer:customer.rows[0],orders:orders.rows,licenses:licenses.rows});});
 app.patch("/api/admin/customers/:id",auth,adminOnly("customers.manage"),async(req,res)=>{const {name,email,emailVerified}=req.body||{};if(!name?.trim()||!email?.trim())return res.status(400).json({error:"Name and email are required"});const {rows}=await pool.query("update users set name=$1,email=$2,email_verified_at=$3,updated_at=now() where id=$4 and role='customer' returning id,name,email,role,created_at,email_verified_at",[name.trim(),email.trim().toLowerCase(),emailVerified?new Date():null,req.params.id]);if(!rows[0])return res.status(404).json({error:"Customer not found"});await audit(req,"admin.customer.update","user",req.params.id,{email:rows[0].email});res.json(rows[0]);});
 app.get("/api/admin/products",auth,adminOnly("products.read"),async(req,res)=>{const {rows}=await pool.query("select * from products order by active desc,created_at desc");await audit(req,"admin.products.view");res.json(rows);});
@@ -129,10 +129,14 @@ app.get("/api/licenses",auth,async(req,res)=>{
 });
 
 app.post("/api/orders",auth,async(req,res)=>{
- const {subtotalCents=5600,discountCents=1400,totalCents=5600,currency="USD",template="Complete Package",paymentMethod="card"}=req.body||{};
- const product=await pool.query("select id,name,price_cents,currency from products where (name=$1 or slug=$1) and active=true limit 1",[template]);
- const productId=product.rows[0]?.id||null;
- const {rows}=await pool.query("insert into orders(user_id,status,currency,subtotal_cents,discount_cents,total_cents,payment_provider,payment_method,payment_status,product_id,metadata) values($1,'pending',$2,$3,$4,$5,$6,$7,$8,'pending',$9,$10) returning *",[req.user.id,currency,subtotalCents,discountCents,totalCents,paymentMethod==="whatsapp"?"whatsapp":"checkout",paymentMethod,productId,JSON.stringify({template})]);
+ const {template="Complete Package",paymentMethod="card"}=req.body||{};
+ const product=await pool.query("select id,name,price_cents,currency from products where slug='complete-package' and active=true limit 1");
+ if(!product.rows[0])return res.status(503).json({error:"The AniFuze product catalog is not configured"});
+ const p=product.rows[0];
+ const subtotalCents=7000;
+ const discountCents=Math.max(0,subtotalCents-p.price_cents);
+ const totalCents=p.price_cents;
+ const {rows}=await pool.query("insert into orders(user_id,status,currency,subtotal_cents,discount_cents,total_cents,payment_provider,payment_method,payment_status,product_id,metadata) values($1,'pending',$2,$3,$4,$5,$6,$7,$8,'pending',$9,$10) returning *",[req.user.id,p.currency,subtotalCents,discountCents,totalCents,paymentMethod==="whatsapp"?"whatsapp":"checkout",paymentMethod,p.id,JSON.stringify({template,product:p.name})]);
  res.status(201).json({...rows[0],template});
 });
 
