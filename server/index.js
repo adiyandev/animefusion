@@ -236,6 +236,16 @@ app.patch("/api/admin/installations/:id",auth,adminOnly("installations.manage"),
  await audit(req,"admin.installation.update","installation",rows[0].id,{status:rows[0].status});res.json(rows[0]);
 });
 
+app.post("/api/license/verify",async(req,res)=>{
+ const {licenseKey,licenseHash,installationId,domain,version}=req.body||{};const key=String(licenseKey||'').trim().toUpperCase();const keyHash=String(licenseHash||'').trim();if(!key&&!keyHash)return res.status(400).json({valid:false,error:"License key or license hash is required"});
+ const lookup=key?"l.license_key=$1":"encode(digest(l.license_key,'sha256'),'hex')=$1";const value=key||keyHash;
+ const q=await pool.query("select l.id,l.license_key,l.status,l.expires_at,l.scope,l.max_activations,l.activation_count,p.name as product_name,u.name as customer_name,u.email as customer_email,i.id as installation_id,i.status as installation_status from licenses l join users u on u.id=l.user_id left join products p on p.id=l.product_id left join lateral (select id,status from installations where license_id=l.id order by updated_at desc limit 1) i on true where "+lookup+" limit 1",[value]);
+ const l=q.rows[0];if(!l)return res.status(404).json({valid:false,error:"License not found"});const expired=l.expires_at&&new Date(l.expires_at)<new Date();if(!['ACTIVE'].includes(l.status)||expired)return res.status(403).json({valid:false,error:"License is not active",licenseId:l.id,status:l.status,expiresAt:l.expires_at});
+ if(installationId&&l.installation_id&&String(installationId)!==String(l.installation_id))return res.status(403).json({valid:false,error:"Installation is not authorized for this license"});
+ if(domain&&l.installation_id){const iq=await pool.query("select domain,status from installations where id=$1",[l.installation_id]);if(iq.rows[0]?.domain&&iq.rows[0].domain!==domain)return res.status(403).json({valid:false,error:"Domain is not authorized for this license"});if(iq.rows[0]?.status!=="ACTIVE")return res.status(403).json({valid:false,error:"Installation is inactive"});}
+ res.json({valid:true,licenseId:l.id,plan:l.product_name||"AniFuze",customer:l.customer_name,customerEmail:l.customer_email,domain:domain||null,expiresAt:l.expires_at,product:l.product_name||"AniFuze",version:version||null,installationId:l.installation_id||installationId||null});
+});
+
 app.get("/api/licenses",auth,async(req,res)=>{
  const {rows}=await pool.query("select l.id,l.license_key,l.license_type,l.status,l.scope,l.max_activations,l.activation_count,l.issued_at,l.expires_at,p.name as product_name,s.name as service_name from licenses l left join products p on p.id=l.product_id left join services s on s.id=l.service_id where l.user_id=$1 order by l.issued_at desc",[req.user.id]);
  res.json(rows);
