@@ -60,6 +60,8 @@ app.post("/api/auth/logout",auth,async(req,res)=>{
   await pool.query("delete from sessions where token_hash=$1",[hash(req.token)]);res.status(204).end();
 });
 
+app.put("/api/me",auth,async(req,res)=>{const {name,displayName,bio,avatarUrl,bannerUrl,preferences}=req.body||{};const nextName=String(name||req.user.name).trim();await pool.query("update users set name=$1,updated_at=now() where id=$2",[nextName,req.user.id]);await pool.query("insert into profiles(user_id,display_name,bio,avatar_url,banner_url,preferences) values($1,$2,$3,$4,$5,$6) on conflict(user_id) do update set display_name=excluded.display_name,bio=excluded.bio,avatar_url=excluded.avatar_url,banner_url=excluded.banner_url,preferences=excluded.preferences,updated_at=now()",[req.user.id,displayName||nextName,bio||null,avatarUrl||null,bannerUrl||null,preferences||{}]);const {rows}=await pool.query("select u.id,u.name,u.email,u.role,u.created_at,p.display_name,p.avatar_url,p.banner_url,p.bio,p.preferences from users u left join profiles p on p.user_id=u.id where u.id=$1",[req.user.id]);res.json(rows[0]);});
+
 app.get("/api/me",auth,async(req,res)=>{
   const {rows}=await pool.query("select u.id,u.name,u.email,u.role,u.created_at,p.display_name,p.avatar_url,p.banner_url,p.bio,p.preferences from users u left join profiles p on p.user_id=u.id where u.id=$1",[req.user.id]);
   res.json(rows[0]);
@@ -73,6 +75,8 @@ app.get("/api/licenses",auth,async(req,res)=>{
   const {rows}=await pool.query("select l.id,l.license_key,l.license_type,l.status,l.scope,l.issued_at,l.expires_at,s.name as service_name from licenses l left join services s on s.id=l.service_id where l.user_id=$1 order by l.issued_at desc",[req.user.id]);
   res.json(rows);
 });
+
+app.post("/api/orders",auth,async(req,res)=>{const {subtotalCents=5600,discountCents=1400,totalCents=4200,currency="USD",template="Complete Package"}=req.body||{};const {rows}=await pool.query("insert into orders(user_id,status,currency,subtotal_cents,discount_cents,total_cents,payment_provider) values($1,'pending',$2,$3,$4,$5,$6) returning *",[req.user.id,currency,subtotalCents,discountCents,totalCents,"checkout"]);res.status(201).json({...rows[0],template});});
 
 app.get("/api/orders",auth,async(req,res)=>{
   const {rows}=await pool.query("select * from orders where user_id=$1 order by created_at desc",[req.user.id]);res.json(rows);
