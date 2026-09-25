@@ -18,7 +18,7 @@ function AskAnything(){
    setTimeout(()=>setMessages(m=>[...m,{from:"support",text:"Thanks — your message is in the support queue. An AniFuze support agent can continue this conversation here."}]),700)
  };
  return <>
-   <button className="supportLauncher" onClick={()=>setOpen(v=>!v)} aria-label="Open AniFuze support"><LifeBuoy size={17}/><span>Support</span></button>
+   <button className="supportLauncher" onClick={()=>setOpen(v=>!v)} aria-label="Open AniFuze support"><span className="dynamicIslandDot"/><span className="dynamicIslandLabel">{open?"AniFuze Support":"Support"}</span><span className="dynamicIslandStatus">• {open?"Online":"2h"}</span><ChevronDown size={12}/></button>
    {open&&<div className="supportChat">
      <div className="supportChatHead">
        <div className="supportAgentHead">
