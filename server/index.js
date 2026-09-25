@@ -67,6 +67,47 @@ app.get("/api/me",auth,async(req,res)=>{
   res.json(rows[0]);
 });
 
+const adminOnly=(permission)=>async(req,res,next)=>{
+ if(!req.user||!["owner","admin","support","developer","finance"].includes(req.user.role))return res.status(403).json({error:"Admin access required"});
+ if(req.user.role==="owner")return next();
+ const {rows}=await pool.query("select 1 from admin_permissions where role=$1 and (permission=$2 or permission='*') limit 1",[req.user.role,permission]);
+ if(!rows[0])return res.status(403).json({error:"Insufficient admin permission"});
+ next();
+};
+
+async function audit(req,action,entityType=null,entityId=null,metadata={}){
+ try{await pool.query("insert into audit_logs(actor_user_id,action,entity_type,entity_id,metadata,ip_address,user_agent) values($1,$2,$3,$4,$5,$6,$7)",[req.user?.id||null,action,entityType,entityId,JSON.stringify(metadata),req.ip,req.get("user-agent")||null]);}catch{}
+}
+
+app.get("/api/admin/me",auth,adminOnly("system.read"),async(req,res)=>{
+ const {rows}=await pool.query("select id,name,email,role,created_at from users where id=$1",[req.user.id]);
+ await audit(req,"admin.session.view");
+ res.json(rows[0]);
+});
+
+app.get("/api/admin/dashboard",auth,adminOnly("system.read"),async(req,res)=>{
+ const [customers,orders,pending,support,licenses,installations]=await Promise.all([
+  pool.query("select count(*)::int as count from users where role='customer'"),
+  pool.query("select count(*)::int as count,coalesce(sum(total_cents),0)::bigint as revenue from orders where status in ('approved','paid')"),
+  pool.query("select count(*)::int as count from orders where status='pending'"),
+  pool.query("select count(*)::int as count from support_cases where status in ('OPEN','IN_PROGRESS','WAITING')"),
+  pool.query("select count(*)::int as count from licenses where status='ACTIVE'"),
+  pool.query("select 0::int as count")
+ ]);
+ await audit(req,"admin.dashboard.view");
+ res.json({customers:customers.rows[0],orders:orders.rows[0],pendingOrders:pending.rows[0],support:support.rows[0],licenses:licenses.rows[0],installations:installations.rows[0]});
+});
+
+app.get("/api/admin/activity",auth,adminOnly("system.read"),async(_req,res)=>{
+ const {rows}=await pool.query("select a.id,a.action,a.entity_type,a.entity_id,a.metadata,a.created_at,u.name as actor_name from audit_logs a left join users u on u.id=a.actor_user_id order by a.created_at desc limit 25");
+ res.json(rows);
+});
+
+app.get("/api/admin/health",auth,adminOnly("system.read"),async(_req,res)=>{
+ const started=Date.now();await pool.query("select 1");
+ res.json({api:"operational",database:"connected",latencyMs:Date.now()-started,environment:process.env.NODE_ENV||"development"});
+});
+
 app.get("/api/services",auth,async(_req,res)=>{
   const {rows}=await pool.query("select * from services order by name");res.json(rows);
 });
