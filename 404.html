@@ -1,1 +1,19 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>AnimeFusion</title><script>sessionStorage.setItem("af_redirect",location.pathname+location.search+location.hash);location.replace("./");</script></head><body></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AniFuze</title>
+<script>
+(function(){
+  var base="/AnimeFusion";
+  var path=location.pathname;
+  var relative=path.indexOf(base)===0?path.slice(base.length):path;
+  if(!relative) relative="/";
+  sessionStorage.setItem("af_redirect",relative+location.search+location.hash);
+  location.replace(base+"/");
+})();
+</script>
+</head>
+<body></body>
+</html>
