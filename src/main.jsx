@@ -186,12 +186,16 @@ function CustomerDashboard(){
  const [page,setPage]=useState("Overview");
  const [selected,setSelected]=useState(null);
  const [showSecrets,setShowSecrets]=useState({});
- const [supportCases,setSupportCases]=useState(()=>{try{return JSON.parse(localStorage.getItem("anifuze_support_cases")||"[]")}catch{return []}});
+ const [supportCases,setSupportCases]=useState([]);
+ const [remoteServices,setRemoteServices]=useState([]);
+ const [remoteLicenses,setRemoteLicenses]=useState([]);
+ const [remoteOrders,setRemoteOrders]=useState([]);
+ useEffect(()=>{if(!getAuthToken())return;Promise.all([api("/me"),api("/services"),api("/licenses"),api("/orders"),api("/support/cases")]).then(([me,services,licenses,orders,cases])=>{setName(me.name||"Customer");setEmail(me.email||"");setProfileName(me.display_name||me.name||"Customer");setProfileEmail(me.email||"");setRemoteServices(services||[]);setRemoteLicenses(licenses||[]);setRemoteOrders(orders||[]);setSupportCases(cases||[]);}).catch(()=>{});},[]);
  const first=name.split(" ")[0];
  const nav=[["Overview",LayoutDashboard],["Services",BriefcaseBusiness],["Licenses",LicenseIcon],["Installers",DownloadCloud],["Support",LifeBuoy]];
- const saveProfile=()=>{const nextName=profileName.trim()||"Customer";const nextEmail=profileEmail.trim()||"customer@example.com";localStorage.setItem("animefusion_customer_name",nextName);localStorage.setItem("animefusion_customer_email",nextEmail);setName(nextName);setEmail(nextEmail)};
+ const saveProfile=async()=>{const nextName=profileName.trim()||"Customer";try{const me=await api("/me",{method:"PUT",body:JSON.stringify({name:nextName,displayName:nextName})});localStorage.setItem("animefusion_customer_name",me.name);localStorage.setItem("animefusion_customer_email",me.email);setName(me.name);setEmail(me.email)}catch(error){alert(error.message||"Unable to save profile")}};
  const changeAvatar=e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{const value=String(reader.result||"");localStorage.setItem("animefusion_customer_avatar",value);setAvatar(value)};reader.readAsDataURL(file)};
- const logout=()=>{localStorage.removeItem("animefusion_mock_auth");localStorage.removeItem("animefusion_customer_name");localStorage.removeItem("animefusion_customer_email");localStorage.removeItem("animefusion_customer_avatar");window.history.pushState({},"",APP_BASE+"/auth");window.dispatchEvent(new PopStateEvent("popstate"))};
+ const logout=async()=>{try{await api("/auth/logout",{method:"POST"})}catch{}clearAuthSession();localStorage.removeItem("animefusion_mock_auth");localStorage.removeItem("animefusion_customer_name");localStorage.removeItem("animefusion_customer_email");localStorage.removeItem("animefusion_customer_avatar");window.location.hash="/auth";window.dispatchEvent(new PopStateEvent("popstate"))};
  const goSupport=()=>{window.history.pushState({},"",APP_BASE+"/support");window.dispatchEvent(new PopStateEvent("popstate"))};
  const copy={
   Overview:["Your workspace at a glance.","Monitor your package, licenses, delivery and support."],
@@ -201,17 +205,8 @@ function CustomerDashboard(){
   Installers:["Your installers.","Verified installers and deployment packages available for your account."],
   Support:["Support center.","Keep deployment questions and support cases in one place."]
  };
- const serviceList=[
-  {id:"platform",title:"AniFuze Platform",desc:"Complete anime website platform",status:"ACTIVE",icon:PlaySquare,product:"AniFuze Complete",version:"1.0",licenseKey:"ANIFUZE_8K2M7Q4P91",delivery:"Verified package"},
-  {id:"admin",title:"Admin System",desc:"Customer administration and management",status:"READY",icon:MonitorCog,product:"AniFuze Admin",version:"1.0",licenseKey:"ANIFUZE_3N6VK8DS15QA",delivery:"Verified package"},
-  {id:"delivery",title:"Verified Delivery",desc:"Secure package delivery and integrity",status:"ACTIVE",icon:ShieldCheck,product:"AniFuze Delivery",version:"1.0",licenseKey:"ANIFUZE_7P4CM9TZ62QX",delivery:"SHA-256 verified"},
-  {id:"support",title:"Support Access",desc:"Connected customer support lifecycle",status:"ACTIVE",icon:LifeBuoy,product:"AniFuze Support",version:"1.0",licenseKey:"ANIFUZE_2L8XR5NC7V1B",delivery:"Customer workspace"}
- ];
- const licenseList=[
-  {id:"l1",name:"AniFuze Complete",type:"Platform license",key:"ANIFUZE_8K2M7Q4P91",status:"ACTIVE",issued:"September 25, 2026",scope:"Production deployment",service:"AniFuze Platform"},
-  {id:"l2",name:"Presentation Template",type:"Template license",key:"ANIFUZE_3N6VK8DS15QA",status:"ACTIVE",issued:"September 25, 2026",scope:"Presentation layer only",service:"Marketplace template"},
-  {id:"l3",name:"Verified Delivery",type:"Delivery license",key:"ANIFUZE_7P4CM9TZ62QX",status:"ACTIVE",issued:"September 25, 2026",scope:"Verified package delivery",service:"Verified Delivery"}
- ];
+ const serviceList=remoteServices.map(s=>{const license=remoteLicenses.find(l=>l.service_name===s.name);return{id:s.id,title:s.name,desc:s.description||"AniFuze service",status:s.status,icon:BriefcaseBusiness,product:s.name,version:s.version||"1.0",licenseKey:license?.license_key||"",delivery:s.metadata?.delivery||"Verified package"}});
+ const licenseList=remoteLicenses.map(l=>({id:l.id,name:l.service_name||"AniFuze License",type:l.license_type,key:l.license_key,status:l.status,issued:new Date(l.issued_at).toLocaleDateString(),scope:l.scope||"Production deployment",service:l.service_name||"AniFuze"}));
  const installers=[
   {name:"AniFuze Complete",version:"v1.0",size:"48.2 MB",status:"READY",file:"anifuze-complete-installer-v1.0.txt",contents:"AniFuze Complete installer manifest\nVersion: 1.0\nLicense: ANIFUZE_8K2M7Q4P91\nDelivery: SHA-256 verified"},
   {name:"AniFuze Admin",version:"v1.0",size:"31.7 MB",status:"READY",file:"anifuze-admin-installer-v1.0.txt",contents:"AniFuze Admin installer manifest\nVersion: 1.0\nLicense: ANIFUZE_3N6VK8DS15QA\nDelivery: Verified package"}
