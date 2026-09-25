@@ -560,3 +560,42 @@ footer span:hover{color:var(--ink)}
 .portalSupportPrimary{display:inline-flex;align-items:center;gap:8px;border:0;background:#111827;color:#fff;border-radius:999px;padding:10px 15px;margin:0 0 12px;font:inherit;font-size:10px;font-weight:850;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}.portalSupportPrimary:hover{transform:translateY(-2px);box-shadow:0 10px 24px #11182722}.portalListCard.clickable{cursor:pointer}.portalListCard.clickable:hover{transform:translateY(-3px) translateX(2px)}
 
 .caseComposer{position:relative;display:flex;align-items:flex-end;gap:9px;padding:13px 15px;border-top:1px solid #eceef1;background:#fff}.caseInputWrap{flex:1;min-width:0;position:relative;background:#f7f8fa;border:1px solid #e1e4e8;border-radius:16px;padding:9px 12px 25px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}.caseInputWrap:focus-within{background:#fff;border-color:#d97706;box-shadow:0 0 0 4px #d9770610}.caseInputWrap textarea{display:block;width:100%;min-height:24px;max-height:110px;resize:none;border:0;outline:0;background:transparent;color:#20252b;font:inherit;font-size:11px;line-height:1.45;padding:0}.caseInputWrap textarea::placeholder{color:#9aa1a9}.caseInputWrap>span{position:absolute;left:12px;bottom:7px;font-size:7px;font-weight:700;color:#a2a8af;letter-spacing:.01em}.attachCase,.sendCase{width:38px;height:38px;flex:0 0 38px;border-radius:12px;display:grid;place-items:center;cursor:pointer;transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease}.attachCase{border:1px solid #e1e4e8;background:#f7f8fa;color:#777f88}.attachCase:hover{background:#fff;color:#d97706;transform:translateY(-2px)}.sendCase{border:0;background:#111827;color:#fff;box-shadow:0 7px 18px #11182722}.sendCase:hover:not(:disabled){transform:translateY(-2px) scale(1.03);box-shadow:0 11px 24px #11182730}.sendCase:active:not(:disabled){transform:scale(.96)}.sendCase:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}.typingBubble{position:absolute;left:16px;bottom:70px;display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #e2e5e9;border-radius:14px 14px 14px 5px;padding:8px 10px;box-shadow:0 12px 30px #11182716;animation:typingIn .25s ease both}.typingBubble span{width:5px;height:5px;border-radius:50%;background:#8e959e;animation:typingDot 1.1s infinite ease-in-out}.typingBubble span:nth-child(2){animation-delay:.14s}.typingBubble span:nth-child(3){animation-delay:.28s}.typingBubble b{margin-left:4px;font-size:7px;color:#7c838b;font-weight:800}@keyframes typingDot{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-4px);opacity:1}}@keyframes typingIn{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}.caseMessage{animation:messageIn .32s cubic-bezier(.2,.8,.2,1) both}.caseMessage.you{animation-name:messageInRight}.caseMessage.support{animation-name:messageInLeft}@keyframes messageIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}@keyframes messageInRight{from{opacity:0;transform:translate(12px,8px) scale(.98)}to{opacity:1;transform:none}}@keyframes messageInLeft{from{opacity:0;transform:translate(-12px,8px) scale(.98)}to{opacity:1;transform:none}}.caseMessage p{animation:textReveal .38s ease both}@keyframes textReveal{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+.templatePreviewPage{background:#f7f8fa;min-height:100vh;color:var(--ink)}
+.templatePreviewHero{padding:52px 0 58px;background:#fff;border-bottom:1px solid #e7e9ec}
+.previewBack{display:inline-flex;align-items:center;gap:7px;color:#777f89;font-size:10px;font-weight:800;margin-bottom:35px}
+.previewBack svg{transform:rotate(180deg)}
+.previewHeroGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+.previewHeroGrid h1{font-size:clamp(48px,6vw,78px);line-height:.94;letter-spacing:-.065em;margin:12px 0 18px}
+.previewHeroGrid h1 em{font-style:normal;color:var(--accent)}
+.previewHeroGrid p{max-width:570px;color:#68717c;font-size:14px;line-height:1.7;margin:0}
+.previewMeta{display:flex;flex-wrap:wrap;gap:7px;margin-top:23px}
+.previewMeta span{padding:7px 10px;border:1px solid #e5e7eb;border-radius:999px;background:#fafafa;color:#707882;font-size:8px;font-weight:800}
+.previewMini{min-height:285px;border:1px solid #dfe3e7;border-radius:20px;background:#fff;box-shadow:0 24px 60px rgba(17,24,39,.12);padding:16px;overflow:hidden}
+.previewMini .tvTop{display:flex;justify-content:space-between;font-size:8px;font-weight:900;color:#747c86}
+.previewMini .tvContent{height:170px;margin-top:20px;display:grid;grid-template-columns:1.6fr .7fr;gap:10px}
+.previewMini .tvContent i:first-child{grid-row:span 2}
+.previewMini .tvContent i,.previewMini .tvBottom span{display:block;border-radius:10px;background:#e9ebee}
+.previewMini .tvBottom{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.previewScreens{padding:75px 0}
+.previewGallery{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:14px}
+.previewShot{background:#fff;border:1px solid #e3e6ea;border-radius:17px;overflow:hidden;box-shadow:0 10px 35px rgba(17,24,39,.06);transition:transform .25s ease,box-shadow .25s ease}
+.previewShot:hover{transform:translateY(-5px);box-shadow:0 20px 45px rgba(17,24,39,.1)}
+.previewShotBar{height:34px;display:flex;align-items:center;gap:5px;padding:0 12px;border-bottom:1px solid #eceef1;background:#fbfbfc}
+.previewShotBar>span{width:6px;height:6px;border-radius:50%;background:#d5d8dc}.previewShotBar b{margin-left:7px;font-size:7px;color:#8a9199;letter-spacing:.03em}
+.previewShotScreen{height:300px;display:grid;grid-template-columns:42px 1fr;background:#f4f5f6}
+.previewShot.shot0 .previewShotScreen{height:390px}
+.previewShot.shot2 .previewShotScreen{grid-template-columns:28px 1fr;height:360px}
+.previewShotScreen aside{background:#111827;padding:12px 8px;display:grid;align-content:start;justify-items:center;gap:14px}
+.previewShotScreen aside strong{font-size:8px;color:#fff;margin-bottom:7px}.previewShotScreen aside i{width:14px;height:5px;border-radius:999px;background:#6b7280;opacity:.55}
+.previewScreenMain{padding:14px;overflow:hidden}
+.previewScreenHero{height:125px;border-radius:10px;background:#e4e7ea;padding:14px;display:flex;flex-direction:column;justify-content:flex-end}
+.previewScreenHero small{font-size:6px;font-weight:900;color:#858c94;letter-spacing:.12em}.previewScreenHero b{font-size:17px;letter-spacing:-.05em;margin-top:5px;color:#262c33}.previewScreenHero span{width:55px;height:5px;border-radius:999px;background:#c5c9ce;margin-top:8px}
+.previewScreenCards{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.previewScreenCards i{height:58px;border-radius:7px;background:#e1e4e7}
+.previewScreenRows{display:grid;gap:6px;margin-top:10px}.previewScreenRows i{height:8px;border-radius:999px;background:#e1e4e7}
+.previewPurchase{padding:0 0 80px}
+.previewPurchaseBox{display:flex;align-items:center;justify-content:space-between;gap:30px;background:#111827;color:#fff;border-radius:22px;padding:34px 38px;box-shadow:0 24px 55px rgba(17,24,39,.16)}
+.previewPurchaseBox label{color:#aeb5be}.previewPurchaseBox h2{font-size:clamp(25px,3vw,38px);letter-spacing:-.045em;line-height:1.05;margin:8px 0 9px;max-width:650px}.previewPurchaseBox p{margin:0;color:#aeb5be;font-size:11px}
+.previewPrice{display:grid;justify-items:end;gap:14px;flex:none}.previewPrice>div{display:flex;align-items:center;gap:8px}.previewPrice s{color:#858d97;font-size:11px}.previewPrice strong{font-size:30px;letter-spacing:-.05em}.previewPrice span{background:#ea580c;color:#fff;border-radius:999px;padding:5px 8px;font-size:7px;font-weight:900}
+@media(max-width:850px){.previewHeroGrid,.previewGallery{grid-template-columns:1fr}.previewMini{min-height:240px}.previewPurchaseBox{align-items:flex-start;flex-direction:column}.previewPrice{justify-items:start}.previewShot.shot0 .previewShotScreen{height:330px}}
+@media(max-width:560px){.templatePreviewHero{padding:38px 0 45px}.previewHeroGrid h1{font-size:50px}.previewScreens{padding:50px 0}.previewShotScreen,.previewShot.shot0 .previewShotScreen,.previewShot.shot2 .previewShotScreen{height:300px}.previewPurchaseBox{padding:27px 22px}.previewPrice{width:100%}.previewPrice>div{width:100%}.previewPrice .primary{width:100%;justify-content:center;box-sizing:border-box}}
