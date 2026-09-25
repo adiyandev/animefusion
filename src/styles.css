@@ -778,3 +778,47 @@ footer span:hover{color:var(--ink)}
  .topAvatar{width:36px;height:36px}
  .portalIntro{margin:20px auto 25px}
 }
+
+/* Admin control center polish */
+.adminShell{min-height:100dvh;overflow:hidden}
+.adminSidebar{position:sticky;top:0;height:100dvh;overflow:hidden;z-index:40}
+.adminNav{overflow-y:auto;min-height:0;padding-right:3px;scrollbar-width:thin}
+.adminMain{min-height:100dvh;overflow-x:hidden}
+.adminTop{position:sticky;top:0;z-index:30;background:rgba(247,248,250,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transition:box-shadow .25s ease}
+.adminNav button{transition:transform .18s ease,background .18s ease,color .18s ease}
+.adminNav button:hover{transform:translateX(3px)}
+.adminNav button.active{box-shadow:inset 2px 0 0 #ea580c}
+.adminStats,.adminPanel,.adminTable,.adminCommerceCard,.adminPlaceholder,.adminDetail,.adminEdit,.adminGateCard{animation:adminRise .45s cubic-bezier(.2,.75,.2,1) both}
+.adminStats article{transition:background .2s ease,transform .2s ease}
+.adminStats article:hover{background:#fafafa;transform:translateY(-2px)}
+.adminTableRow{transition:background .18s ease,transform .18s ease}
+.adminTableRow:hover{background:#fafafa}
+.adminTableRow button,.adminApprove,.adminCaseComposer button{transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.adminTableRow button:hover,.adminApprove:hover,.adminCaseComposer button:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(17,24,39,.08)}
+.supportAdminGrid{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(420px,1.4fr);gap:16px;min-height:620px}
+.supportCaseList{max-height:680px;overflow:auto}
+.supportCaseRow{display:grid;grid-template-columns:1fr auto auto;gap:12px;width:100%;border:0;border-top:1px solid #eef0f3;background:#fff;text-align:left;padding:17px;cursor:pointer}
+.supportCaseRow:first-child{border-top:0}
+.supportCaseRow:hover,.supportCaseRow.selected{background:#f8f9fb}
+.supportCaseRow b,.supportCaseRow span{display:block}
+.supportCaseRow span{margin-top:5px;color:#667085;font-size:11px}
+.supportCaseRow em{font-style:normal;font-size:9px;font-weight:800;color:#667085;text-transform:uppercase}
+.supportCaseRow small{color:#8a93a1}
+.supportConversation{display:flex;flex-direction:column;min-height:620px;padding:20px}
+.supportConversation select{border:1px solid #e1e5e9;border-radius:9px;padding:8px;background:#fff;font-size:11px;font-weight:700}
+.supportMessages{flex:1;min-height:380px;max-height:510px;overflow:auto;margin:20px -4px;padding:4px 12px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.supportMessage{max-width:78%;padding:11px 13px;border-radius:14px;animation:messageIn .25s ease both}
+.supportMessage.customer{align-self:flex-start;background:#f1f3f5}
+.supportMessage.agent{align-self:flex-end;background:#111827;color:#fff}
+.supportMessage span{font-size:9px;font-weight:800;opacity:.65}
+.supportMessage p{margin:5px 0;font-size:12px;line-height:1.55;white-space:pre-wrap}
+.supportMessage time{font-size:8px;opacity:.5}
+.adminCaseComposer{display:flex;gap:9px;align-items:end;border-top:1px solid #eef0f3;padding-top:14px}
+.adminCaseComposer textarea{flex:1;min-height:44px;max-height:130px;resize:vertical;border:1px solid #e1e5e9;border-radius:12px;padding:12px;font:inherit;font-size:12px;outline:none}
+.adminCaseComposer textarea:focus{border-color:#cbd0d6;box-shadow:0 0 0 4px rgba(17,24,39,.04)}
+.adminCaseComposer button{display:flex;align-items:center;gap:7px}
+@keyframes adminRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes messageIn{from{opacity:0;transform:translateY(6px) scale(.99)}to{opacity:1;transform:none}}
+@media(max-width:1000px){.supportAdminGrid{grid-template-columns:1fr}.supportCaseList{max-height:340px}.supportConversation{min-height:560px}}
+@media(max-width:900px){.adminSidebar{position:relative;height:auto;max-height:430px}.adminNav{max-height:270px}.adminMain{min-height:auto}.adminTop{position:sticky}}
+@media(prefers-reduced-motion:reduce){.adminStats,.adminPanel,.adminTable,.adminCommerceCard,.adminPlaceholder,.adminDetail,.adminEdit,.adminGateCard,.supportMessage{animation:none}.adminNav button,.adminTableRow,.adminStats article{transition:none}}
