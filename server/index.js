@@ -9,12 +9,8 @@ const app=express();
 const port=Number(process.env.PORT||8787);
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_SSL==="false"?false:{rejectUnauthorized:false}});
 
-const allowedOrigins=[...new Set(["https://adiyandev.github.io",...(process.env.FRONTEND_ORIGIN||"").split(",").map(value=>value.trim().replace(/\/$/,"")).filter(Boolean))];
 const corsOptions={
-  origin:(origin,callback)=>{
-    if(!origin||allowedOrigins.includes(origin))return callback(null,true);
-    return callback(null,false);
-  },
+  origin:"https://adiyandev.github.io",
   credentials:true,
   methods:["GET","HEAD","PUT","PATCH","POST","DELETE","OPTIONS"],
   allowedHeaders:["Content-Type","Authorization"]
