@@ -262,3 +262,22 @@ footer span:hover{color:var(--ink)}
 .summaryNote{display:flex;gap:6px;align-items:flex-start;color:#9298a0;font-size:8px;line-height:1.5;margin:13px 2px 0}.summaryNote svg{flex:0 0 auto;color:#287a4b}
 @media(max-width:900px){.checkoutGrid{grid-template-columns:1fr}.checkoutSummary{position:static}.checkoutHero{padding-top:60px}}
 @media(max-width:620px){.checkoutHero h1{font-size:49px}.formGrid{grid-template-columns:1fr}.formGrid label.full{grid-column:auto}.paymentMethods{grid-template-columns:1fr}.checkoutBody{padding-top:35px}}
+
+
+/* Expanded checkout controls */
+.checkoutCard.checkoutWide{padding:32px;min-height:150px}
+.checkoutGrid{grid-template-columns:minmax(0,1.45fr) 430px;gap:28px}
+.checkoutMain{gap:20px}
+.paymentMethods{grid-template-columns:1fr 1fr;gap:14px}
+.paymentMethod{min-height:82px;padding:18px;display:grid;grid-template-columns:36px 1fr 20px;align-items:center;gap:12px;text-align:left;border:1px solid #dfe2e6;border-radius:15px;background:#fff;cursor:pointer;transition:.2s}
+.paymentMethod:hover{border-color:#bfc4ca;transform:translateY(-2px);box-shadow:0 10px 24px #1118270a}
+.paymentMethod.active{border-color:#15171b;box-shadow:inset 0 0 0 1px #15171b,0 10px 25px #1118270a}
+.paymentMethod .methodIcon{width:36px;height:36px;border-radius:10px;background:#15171b;color:#fff;display:grid;place-items:center;font-size:15px;font-weight:900}
+.paymentMethod .methodIcon.google{background:#f5f6f7;color:#15171b;border:1px solid #e0e3e7}
+.paymentMethod span{font-size:12px;font-weight:850}.paymentMethod small{display:block;font-size:9px;color:#8b9199;margin-top:5px;line-height:1.4}.paymentMethod i{width:18px;height:18px;border-radius:50%;border:1px solid #d2d6db;display:grid;place-items:center;font-size:9px;font-style:normal;color:#fff}.paymentMethod.active i{background:#15171b;border-color:#15171b}
+.cardDetails{margin-top:18px;border:1px solid #e2e4e7;border-radius:15px;padding:22px;background:#fafbfc}
+.cardDetailsHead{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:18px}.cardDetailsHead b,.cardDetailsHead span{display:block}.cardDetailsHead b{font-size:12px}.cardDetailsHead>div>span{font-size:9px;color:#888f98;margin-top:4px}.secureBadge{display:flex!important;align-items:center;gap:5px;padding:6px 9px;border-radius:999px;background:#edf7f0;color:#287a4b!important;font-size:8px!important;font-weight:800;white-space:nowrap}
+.inputWithIcon{position:relative}.inputWithIcon input{padding-right:55px}.inputWithIcon>span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:900;color:#6f7680}
+.googlePayPanel{margin-top:18px;padding:23px;border:1px solid #dfe2e6;border-radius:15px;background:#fafbfc;display:flex;align-items:center;gap:14px}.googlePayLogo{width:40px;height:40px;border-radius:11px;background:#fff;border:1px solid #e0e3e7;display:grid;place-items:center;font-size:18px;font-weight:900}.googlePayPanel b{display:block;font-size:12px}.googlePayPanel span{display:block;color:#858c95;font-size:9px;line-height:1.6;margin-top:5px}
+@media(max-width:900px){.checkoutGrid{grid-template-columns:1fr}.checkoutSummary{position:static}}
+@media(max-width:620px){.checkoutCard.checkoutWide{padding:23px}.paymentMethods{grid-template-columns:1fr}.cardDetails{padding:17px}.cardDetailsHead{flex-direction:column}.checkoutHero h1{font-size:49px}}
