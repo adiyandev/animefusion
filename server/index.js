@@ -277,6 +277,50 @@ app.post("/api/admin/deliveries/:id/authorize",auth,adminOnly("delivery.manage")
 });
 app.get("/api/admin/deliveries",auth,adminOnly("delivery.read"),async(req,res)=>{const {rows}=await pool.query("select d.*,u.name as customer_name,u.email as customer_email,r.version,t.name as template_name from deliveries d join users u on u.id=d.user_id left join releases r on r.id=d.release_id left join templates t on t.id=d.template_id order by d.created_at desc");res.json(rows);});
 
+// Phase Five — Operations, Analytics, Notifications, Security, Settings, Backups & Updates
+app.post("/api/analytics/events",async(req,res)=>{
+ const {eventName,path,sessionId,metadata={}}=req.body||{};if(!eventName)return res.status(400).json({error:"eventName is required"});
+ try{await pool.query("insert into analytics_events(user_id,event_name,path,session_id,ip_address,user_agent,metadata) values($1,$2,$3,$4,$5,$6,$7)",[req.user?.id||null,eventName,path||null,sessionId||null,req.ip,req.get("user-agent")||null,JSON.stringify(metadata)]);res.status(202).json({accepted:true});}catch(e){res.status(500).json({error:"Unable to record analytics event"});}
+});
+app.get("/api/notifications",auth,async(req,res)=>{const {rows}=await pool.query("select * from notifications where user_id=$1 order by created_at desc limit 100",[req.user.id]);res.json(rows);});
+app.patch("/api/notifications/:id/read",auth,async(req,res)=>{const {rows}=await pool.query("update notifications set read_at=coalesce(read_at,now()) where id=$1 and user_id=$2 returning *",[req.params.id,req.user.id]);if(!rows[0])return res.status(404).json({error:"Notification not found"});res.json(rows[0]);});
+app.post("/api/security/change-password",auth,async(req,res)=>{
+ const {currentPassword,newPassword}=req.body||{};if(!currentPassword||!newPassword||newPassword.length<8)return res.status(400).json({error:"Current password and an 8+ character new password are required"});
+ const user=await pool.query("select password_hash from users where id=$1",[req.user.id]);if(!user.rows[0]||user.rows[0].password_hash!==hash(currentPassword))return res.status(401).json({error:"Current password is incorrect"});
+ await pool.query("update users set password_hash=$1,password_changed_at=now(),updated_at=now() where id=$2",[hash(newPassword),req.user.id]);
+ await pool.query("delete from sessions where user_id=$1 and token_hash<>$2",[req.user.id,hash(req.token)]);
+ await pool.query("insert into security_events(user_id,event_type,severity,ip_address,user_agent,metadata) values($1,'password_changed','info',$2,$3,$4)",[req.user.id,req.ip,req.get("user-agent")||null,JSON.stringify({sessions_revoked:true})]);
+ res.json({ok:true});
+});
+
+app.get("/api/admin/analytics",auth,adminOnly("analytics.read"),async(req,res)=>{
+ const [totals,events,users,orders]=await Promise.all([
+  pool.query("select count(*)::int as events,count(distinct user_id)::int as unique_users from analytics_events where created_at>now()-interval '30 days'"),
+  pool.query("select event_name,count(*)::int as count from analytics_events where created_at>now()-interval '30 days' group by event_name order by count desc limit 20"),
+  pool.query("select count(*)::int as count from users where created_at>now()-interval '30 days'"),
+  pool.query("select count(*)::int as count,coalesce(sum(total_cents),0)::bigint as revenue_cents from orders where created_at>now()-interval '30 days' and status in ('approved','paid')")
+ ]);await audit(req,"admin.analytics.view");res.json({totals:totals.rows[0],events:events.rows,recentCustomers:users.rows[0].count,revenueCents:orders.rows[0].revenue_cents,orders:orders.rows[0].count});
+});
+app.get("/api/admin/notifications",auth,adminOnly("notifications.manage"),async(req,res)=>{const {rows}=await pool.query("select n.*,u.name as customer_name,u.email as customer_email from notifications n join users u on u.id=n.user_id order by n.created_at desc limit 200");res.json(rows);});
+app.post("/api/admin/notifications",auth,adminOnly("notifications.manage"),async(req,res)=>{
+ const {userId,title,body,type="system",metadata={}}=req.body||{};if(!userId||!title||!body)return res.status(400).json({error:"Customer, title and body are required"});
+ const {rows}=await pool.query("insert into notifications(user_id,title,body,type,metadata) values($1,$2,$3,$4,$5) returning *",[userId,title,body,type,JSON.stringify(metadata)]);await audit(req,"notification.create","notification",rows[0].id,{user_id:userId});res.status(201).json(rows[0]);
+});
+app.get("/api/admin/security",auth,adminOnly("security.read"),async(req,res)=>{const {rows}=await pool.query("select s.*,u.name as user_name,u.email from security_events s left join users u on u.id=s.user_id order by s.created_at desc limit 200");res.json(rows);});
+app.get("/api/admin/settings",auth,adminOnly("settings.read"),async(req,res)=>{const {rows}=await pool.query("select key,value,secret,updated_at from system_settings order by key");res.json(rows.map(x=>({...x,value:x.secret?"[REDACTED]":x.value})));});
+app.patch("/api/admin/settings/:key",auth,adminOnly("settings.manage"),async(req,res)=>{
+ const {value,secret}=req.body||{};if(value===undefined)return res.status(400).json({error:"value is required"});
+ const {rows}=await pool.query("insert into system_settings(key,value,secret,updated_by,updated_at) values($1,$2,coalesce($3,false),$4,now()) on conflict(key) do update set value=excluded.value,secret=excluded.secret,updated_by=excluded.updated_by,updated_at=now() returning key,value,secret,updated_at",[req.params.key,JSON.stringify(value),Boolean(secret),req.user.id]);await audit(req,"setting.update","system_setting",null,{key:req.params.key});res.json({...rows[0],value:rows[0].secret?"[REDACTED]":rows[0].value});
+});
+app.get("/api/admin/backups",auth,adminOnly("backups.read"),async(req,res)=>{const {rows}=await pool.query("select * from backup_jobs order by created_at desc limit 100");res.json(rows);});
+app.post("/api/admin/backups",auth,adminOnly("backups.manage"),async(req,res)=>{const {backupType="database"}=req.body||{};const {rows}=await pool.query("insert into backup_jobs(status,backup_type,created_by) values('queued',$1,$2) returning *",[backupType,req.user.id]);await audit(req,"backup.create","backup_job",rows[0].id);res.status(201).json(rows[0]);});
+app.get("/api/admin/updates",auth,adminOnly("updates.read"),async(req,res)=>{const {rows}=await pool.query("select j.*,r.version as release_version from update_jobs j left join releases r on r.id=j.release_id order by j.created_at desc limit 100");res.json(rows);});
+app.post("/api/admin/updates",auth,adminOnly("updates.manage"),async(req,res)=>{
+ const {releaseId,target="platform"}=req.body||{};if(!releaseId)return res.status(400).json({error:"releaseId is required"});
+ const release=await pool.query("select version from releases where id=$1 and status='published'",[releaseId]);if(!release.rows[0])return res.status(404).json({error:"Published release not found"});
+ const {rows}=await pool.query("insert into update_jobs(release_id,status,target,version_to,created_by) values($1,'queued',$2,$3,$4) returning *",[releaseId,target,release.rows[0].version,req.user.id]);await audit(req,"update.queue","update_job",rows[0].id,{release_id:releaseId});res.status(201).json(rows[0]);
+});
+app.get("/api/admin/audit",auth,adminOnly("system.read"),async(req,res)=>{const {rows}=await pool.query("select a.*,u.name as actor_name,u.email as actor_email from audit_logs a left join users u on u.id=a.actor_user_id order by a.created_at desc limit 300");res.json(rows);});
 app.get("/api/services",auth,async(_req,res)=>{
   const {rows}=await pool.query("select * from services order by name");res.json(rows);
 });
