@@ -257,25 +257,27 @@ function SupportPage(){
  <footer><div className="container foot"><b>AniFuze</b><span>Services · Marketplace · Support · Licenses</span><span>© 2026 AniFuze</span></div></footer></>
 }
 function CaseComposer({active,onSent}){
- const [text,setText]=useState(""); const [typing,setTyping]=useState(false); const socketRef=useRef(null); const typingTimer=useRef(null);
+ const [text,setText]=useState(""); const [sending,setSending]=useState(false); const [agentTyping,setAgentTyping]=useState(false); const [connected,setConnected]=useState(false); const socketRef=useRef(null); const typingTimer=useRef(null);
  useEffect(()=>{
   if(!active?.id)return;
   const socket=io((import.meta.env.VITE_API_URL||"https://animefusion.onrender.com"),{auth:{token:getAuthToken()},transports:["websocket"]});
   socketRef.current=socket;
-  socket.on("connect",()=>socket.emit("case:join",active.id));
+  socket.on("connect",()=>{setConnected(true);socket.emit("case:join",active.id)});
+  socket.on("disconnect",()=>setConnected(false));
   socket.on("message:new",message=>onSent(message));
-  socket.on("typing:start",()=>setTyping(true));
-  socket.on("typing:stop",()=>setTyping(false));
-  return()=>{socket.emit("typing:stop",active.id);socket.disconnect();socketRef.current=null};
+  socket.on("typing:start",()=>setAgentTyping(true));
+  socket.on("typing:stop",()=>setAgentTyping(false));
+  return()=>{clearTimeout(typingTimer.current);socket.emit("typing:stop",active.id);socket.disconnect();socketRef.current=null};
  },[active?.id]);
  const send=()=>{
-  const value=text.trim(); if(!value||typing)return;
+  const value=text.trim(); if(!value||sending)return;
   const socket=socketRef.current;
   if(!socket?.connected)return alert("Live support is reconnecting. Please try again in a moment.");
-  setTyping(true);
+  setSending(true);
   socket.emit("message:send",{caseId:active.id,body:value},result=>{
-   if(!result?.ok){setTyping(false);return alert(result?.error||"Unable to send message");}
-   setText("");setTyping(false);
+   setSending(false);
+   if(!result?.ok)return alert(result?.error||"Unable to send message");
+   setText("");
   });
  };
  const onChange=e=>{
@@ -284,7 +286,7 @@ function CaseComposer({active,onSent}){
   socket.emit("typing:start",active.id);clearTimeout(typingTimer.current);
   typingTimer.current=setTimeout(()=>socket.emit("typing:stop",active.id),900);
  };
- return <div className="caseComposer"><button className="attachCase" type="button" aria-label="Attach file"><Download size={17}/></button><div className="caseInputWrap"><textarea rows="1" value={text} onChange={onChange} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}} placeholder="Write a message to AniFuze Support…"/><span>Live chat · Enter to send · Shift + Enter for new line</span></div><button className="sendCase" type="button" onClick={send} disabled={!text.trim()||typing} aria-label="Send message"><ArrowRight size={18}/></button>{typing&&<div className="typingBubble"><span/><span/><span/><b>Sending live message</b></div>}</div>
+ return <div className="caseComposer"><button className="attachCase" type="button" aria-label="Attach file"><Download size={17}/></button><div className="caseInputWrap"><textarea rows="1" value={text} onChange={onChange} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}} placeholder="Write a message to AniFuze Support…"/><span>{agentTyping?"AniFuze Support is typing…":connected?"Live chat · Enter to send · Shift + Enter for new line":"Connecting to live chat…"}</span></div><button className="sendCase" type="button" onClick={send} disabled={!text.trim()||sending||!connected} aria-label="Send message"><ArrowRight size={18}/></button>{sending&&<div className="typingBubble"><span/><span/><span/><b>Sending live message</b></div>}</div>
 }
 function AuthPage(){const [mode,setMode]=useState("login");const [showPassword,setShowPassword]=useState(false);const submitMock=async e=>{e.preventDefault();const form=new FormData(e.currentTarget);const email=String(form.get("email")||"").trim();const password=String(form.get("password")||"");const name=String(form.get("name")||email.split("@")[0]||"Customer");try{const data=await api(mode==="signup"?"/auth/signup":"/auth/login",{method:"POST",body:JSON.stringify(mode==="signup"?{name,email,password}:{email,password})});setAuthSession(data);localStorage.setItem("animefusion_mock_auth","1");localStorage.setItem("animefusion_customer_email",data.user?.email||email);const returnTo=localStorage.getItem("animefusion_return_to")||"/dashboard";localStorage.removeItem("animefusion_return_to");window.location.hash=returnTo;window.dispatchEvent(new PopStateEvent("popstate"))}catch(error){alert(error.message||"Unable to authenticate")}};return <><Nav/><main className="authPage"><section className="authShell"><div className="authIntro"><div className="eyebrow"><span/>ANIFUZE ACCOUNT</div><h1>Your platform.<br/><em>Your workspace.</em></h1><p>Sign in to manage your AniFuze services, licenses, purchases, installers and support from one connected customer workspace.</p><div className="authBenefits"><div><Check size={14}/><span><b>One customer workspace</b><small>Keep services, licenses and deployment details together.</small></span></div><div><ShieldCheck size={14}/><span><b>Secure account access</b><small>Built for the customer platform and its service lifecycle.</small></span></div><div><Layers3 size={14}/><span><b>Everything stays connected</b><small>Move from purchase to configuration without losing context.</small></span></div></div></div><div className="authCard"><div className="authTabs"><button className={mode==="login"?"active":""} onClick={()=>setMode("login")}>Log in</button><button className={mode==="signup"?"active":""} onClick={()=>setMode("signup")}>Sign up</button></div><div className="authCardHead"><span>{mode==="login"?"WELCOME BACK":"CREATE YOUR ACCOUNT"}</span><h2>{mode==="login"?"Log in to AniFuze":"Create your AniFuze account"}</h2><p>{mode==="login"?"Continue to your customer workspace.":"Create your customer account to manage your AniFuze package."}</p></div><form className="authForm" onSubmit={submitMock}>{mode==="signup"&&<label>Full name<input name="name" type="text" placeholder="Your name" autoComplete="name"/></label>}<label>Email address<input name="email" type="email" placeholder="you@example.com" autoComplete="email"/></label><label>Password<div className="authPassword"><input name="password" type={showPassword?"text":"password"} placeholder="••••••••" autoComplete={mode==="login"?"current-password":"new-password"}/><button type="button" onClick={()=>setShowPassword(!showPassword)}>{showPassword?"Hide":"Show"}</button></div></label>{mode==="login"&&<div className="authRow"><label className="remember"><input type="checkbox"/> Remember me</label><a href="/auth">Forgot password?</a></div>}{mode==="signup"&&<label className="remember"><input type="checkbox"/> <span>I agree to the AniFuze terms and customer service policies.</span></label>}<button className="authSubmit" type="submit">{mode==="login"?"Log in":"Create account"}<ArrowRight size={16}/></button></form><div className="authDivider"><span/>or<span/></div><button className="authAlt" type="button"><span className="googleLogo"><i></i><i></i><i></i><i></i></span> Continue with Google</button><p className="authSwitch">{mode==="login"?"Don't have an account?":"Already have an account?"} <button type="button" onClick={()=>setMode(mode==="login"?"signup":"login")}>{mode==="login"?"Sign up":"Log in"}</button></p><small className="authNote"><ShieldCheck size={12}/> Account access will connect to the live AniFuze authentication system when backend authentication is enabled.</small></div></section></main><footer><div className="container foot"><b>AniFuze</b><span>Services · Marketplace · Support · Licenses</span><span>© 2026 AniFuze</span></div></footer></>}
 function useReveal(){useEffect(()=>{const nodes=[...document.querySelectorAll(".section,.card,.package,.workflowPreview article,.metric,.serviceCard,.templateCard,.previewShot,.checkoutCard,.portalCard,.portalDetailCard,.portalSettingsCard,.portalInstallerCard,.supportCase,.supportPanel,.ctaBox,.visual")];nodes.forEach((el,i)=>{el.classList.add("reveal");el.style.setProperty("--reveal-delay",`${Math.min(i%6,5)*55}ms`)});const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("is-visible");io.unobserve(entry.target)}}),{threshold:.12,rootMargin:"0px 0px -40px"});nodes.forEach(n=>io.observe(n));return()=>io.disconnect()},[])}
