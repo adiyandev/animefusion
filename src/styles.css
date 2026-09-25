@@ -599,3 +599,47 @@ footer span:hover{color:var(--ink)}
 .previewPrice{display:grid;justify-items:end;gap:14px;flex:none}.previewPrice>div{display:flex;align-items:center;gap:8px}.previewPrice s{color:#858d97;font-size:11px}.previewPrice strong{font-size:30px;letter-spacing:-.05em}.previewPrice span{background:#ea580c;color:#fff;border-radius:999px;padding:5px 8px;font-size:7px;font-weight:900}
 @media(max-width:850px){.previewHeroGrid,.previewGallery{grid-template-columns:1fr}.previewMini{min-height:240px}.previewPurchaseBox{align-items:flex-start;flex-direction:column}.previewPrice{justify-items:start}.previewShot.shot0 .previewShotScreen{height:330px}}
 @media(max-width:560px){.templatePreviewHero{padding:38px 0 45px}.previewHeroGrid h1{font-size:50px}.previewScreens{padding:50px 0}.previewShotScreen,.previewShot.shot0 .previewShotScreen,.previewShot.shot2 .previewShotScreen{height:300px}.previewPurchaseBox{padding:27px 22px}.previewPrice{width:100%}.previewPrice>div{width:100%}.previewPrice .primary{width:100%;justify-content:center;box-sizing:border-box}}
+
+
+.portalDetailGrid{max-width:1200px;margin:0 auto;display:grid;gap:14px}
+.portalBack{justify-self:start;display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:#7d858e;font:inherit;font-size:9px;font-weight:850;cursor:pointer;padding:3px 0;transition:color .2s ease,transform .2s ease}
+.portalBack svg{transform:rotate(180deg)}
+.portalBack:hover{color:var(--accent);transform:translateX(-3px)}
+.portalDetailCard,.portalSecretCard,.portalSettingsCard,.portalInstallerCard{background:#fff;border:1px solid #e5e7eb;border-radius:17px;box-shadow:0 10px 35px #11182706;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.portalDetailCard:hover,.portalSecretCard:hover,.portalSettingsCard:hover,.portalInstallerCard:hover{transform:translateY(-3px);border-color:#dfe3e7;box-shadow:0 18px 42px #1118270d}
+.portalDetailCard{padding:24px}
+.portalDetailHead{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.portalDetailHead>div>span,.portalSecretCard span,.portalSettingsCard>span,.portalInstallerMain>span{font-size:8px;font-weight:900;letter-spacing:.14em;color:#a0a6ae}
+.portalDetailHead h2{font-size:25px;letter-spacing:-.04em;margin:7px 0 5px}
+.portalDetailHead p{margin:0;color:#7a828b;font-size:11px}
+.portalDetailRows{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:23px}
+.portalDetailRows>div{background:#f7f8fa;border:1px solid #eceef1;border-radius:12px;padding:13px}
+.portalDetailRows small{display:block;font-size:7px;font-weight:900;letter-spacing:.1em;color:#a1a7ae;margin-bottom:6px}
+.portalDetailRows b{font-size:10px;color:#252b32}
+.portalSecretCard{padding:20px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:15px;background:linear-gradient(135deg,#fff,#fafafa)}
+.portalSecretCard h3{margin:6px 0 4px;font-size:16px;letter-spacing:-.03em}
+.portalSecretCard p{margin:0;color:#818992;font-size:10px;line-height:1.5}
+.portalSecretCard button{display:inline-flex;align-items:center;gap:7px;border:0;background:#111827;color:#fff;border-radius:999px;padding:10px 14px;font:inherit;font-size:9px;font-weight:850;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.portalSecretCard button:hover{transform:translateY(-2px);box-shadow:0 9px 22px #11182724}
+.portalSecretCard code{grid-column:1/-1;display:block;padding:13px 15px;background:#111827;color:#fff;border-radius:11px;font:700 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;animation:portalReveal .25s ease both}
+@keyframes portalReveal{from{opacity:0;transform:translateY(-5px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+.portalInstallerGrid{max-width:1200px;margin:0 auto;display:grid;gap:12px}
+.portalInstallerCard{padding:20px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px}
+.installerIcon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#fff1e9;color:var(--accent)}
+.installerMain h3{font-size:16px;margin:6px 0 4px;letter-spacing:-.03em}
+.installerMain p{margin:0;color:#818992;font-size:10px}
+.installerMeta{display:flex;gap:8px;margin-top:9px}.installerMeta b,.installerMeta span{font-size:7px;font-weight:850;padding:5px 7px;border-radius:999px;background:#f4f5f6;color:#747c85}
+.installerMeta b{color:#2d7b4d;background:#edf8f1}
+.portalDownload{display:inline-flex;align-items:center;gap:7px;border:0;background:#111827;color:#fff;border-radius:999px;padding:11px 14px;font:inherit;font-size:9px;font-weight:850;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.portalDownload:hover{transform:translateY(-2px);box-shadow:0 10px 25px #11182722}
+.portalEmpty{padding:30px;text-align:center;border:1px dashed #d8dce0;border-radius:16px;color:#8b929a;font-size:10px;background:#fff}
+.portalSettingsGrid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.portalSettingsCard{padding:22px}
+.portalSettingsCard h2{font-size:21px;letter-spacing:-.04em;margin:7px 0 17px}
+.portalSettingRow{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #eceef1}
+.portalSettingIcon{width:30px;height:30px;border-radius:9px;background:#f5f6f7;color:#737b84;display:grid;place-items:center;flex:none}
+.portalSettingRow div:last-child{display:grid;gap:3px}.portalSettingRow b{font-size:9px;color:#343a41}.portalSettingRow span{font-size:9px;color:#858d96}
+.portalPayment{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:13px 0;border-top:1px solid #eceef1}
+.portalPayment div{display:grid;gap:4px}.portalPayment div b{font-size:11px}.portalPayment div span{font-size:8px;color:#858d96}.portalPayment> b{font-size:7px;color:#2d7b4d;background:#edf8f1;padding:5px 7px;border-radius:999px}
+@media(max-width:900px){.portalDetailRows{grid-template-columns:repeat(2,1fr)}.portalSettingsGrid{grid-template-columns:1fr}.portalInstallerCard{grid-template-columns:auto 1fr}.portalDownload{grid-column:2;justify-self:start}}
+@media(max-width:560px){.portalDetailCard,.portalSecretCard,.portalSettingsCard,.portalInstallerCard{padding:17px}.portalDetailHead{flex-direction:column}.portalDetailRows{grid-template-columns:1fr}.portalSecretCard{grid-template-columns:1fr}.portalSecretCard button{justify-self:start}.portalInstallerCard{grid-template-columns:auto 1fr}.installerMain{min-width:0}.portalDownload{grid-column:1/-1}.portalDownload{width:100%;justify-content:center}}
