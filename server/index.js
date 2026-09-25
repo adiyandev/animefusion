@@ -121,8 +121,10 @@ app.patch("/api/admin/orders/:id",auth,adminOnly("orders.manage"),async(req,res)
    const existing=await pool.query("select id from licenses where order_id=$1 limit 1",[rows[0].id]);
    if(!existing.rows[0]){
      const key=makeLicenseKey();
-     await pool.query("insert into licenses(user_id,order_id,product_id,license_key,license_type,status,scope,max_activations) values($1,$2,$3,$4,'platform','ACTIVE','Production deployment',1)",[rows[0].user_id,rows[0].id,rows[0].product_id,key]);
-     await audit(req,"license.auto_issue","license",null,{order_id:rows[0].id,user_id:rows[0].user_id});
+     const issued=await pool.query("insert into licenses(user_id,order_id,product_id,license_key,license_type,status,scope,max_activations) values($1,$2,$3,$4,'platform','ACTIVE','Production deployment',1) returning id",[rows[0].user_id,rows[0].id,rows[0].product_id,key]);
+     const release=await pool.query("select id from releases where status='published' order by published_at desc nulls last limit 1");
+     await pool.query("insert into deliveries(user_id,order_id,license_id,release_id,delivery_type,status,metadata) values($1,$2,$3,$4,'release','pending',$5)",[rows[0].user_id,rows[0].id,issued.rows[0].id,release.rows[0]?.id||null,JSON.stringify({product_id:rows[0].product_id})]);
+     await audit(req,"license.auto_issue","license",issued.rows[0].id,{order_id:rows[0].id,user_id:rows[0].user_id});
    }
  }
  await audit(req,"admin.order.update","order",rows[0].id,{status:rows[0].status,payment_status:rows[0].payment_status});res.json(rows[0]);});
