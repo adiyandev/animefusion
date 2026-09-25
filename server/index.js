@@ -119,6 +119,66 @@ app.get("/api/admin/orders",auth,adminOnly("orders.read"),async(req,res)=>{const
 app.patch("/api/admin/orders/:id",auth,adminOnly("orders.manage"),async(req,res)=>{const {status,paymentStatus,paymentReference}=req.body||{};const allowed=["pending","approved","rejected","paid","cancelled","refunded"];if(status&&!allowed.includes(status))return res.status(400).json({error:"Invalid order status"});const paymentAllowed=["unpaid","pending","paid","failed","refunded"];if(paymentStatus&&!paymentAllowed.includes(paymentStatus))return res.status(400).json({error:"Invalid payment status"});const {rows}=await pool.query("update orders set status=coalesce($1,status),payment_status=coalesce($2,payment_status),payment_reference=coalesce($3,payment_reference),updated_at=now() where id=$4 returning *",[status||null,paymentStatus||null,paymentReference?.trim()||null,req.params.id]);if(!rows[0])return res.status(404).json({error:"Order not found"});await audit(req,"admin.order.update","order",rows[0].id,{status:rows[0].status,payment_status:rows[0].payment_status});res.json(rows[0]);});
 app.get("/api/admin/payments",auth,adminOnly("orders.read"),async(req,res)=>{const {rows}=await pool.query(`select o.id as order_id,o.payment_method,o.payment_provider,o.payment_reference,o.payment_status,o.total_cents,o.currency,o.status,o.created_at,u.name as customer_name,u.email as customer_email from orders o join users u on u.id=o.user_id order by o.created_at desc`);await audit(req,"admin.payments.view");res.json(rows);});
 
+// Phase Three — Licensing, Entitlements, Activations & Installations
+const makeLicenseKey=()=>{const raw=crypto.randomBytes(18).toString("base64url").toUpperCase();return "ANIFUZE-"+raw.match(/.{1,6}/g).join("-")};
+
+app.get("/api/admin/licenses",auth,adminOnly("licenses.read"),async(req,res)=>{
+ const {rows}=await pool.query(`select l.*,u.name as customer_name,u.email as customer_email,p.name as product_name,s.name as service_name,
+ (select count(*)::int from license_activations a where a.license_id=l.id and a.status='ACTIVE') as active_activations
+ from licenses l join users u on u.id=l.user_id left join products p on p.id=l.product_id left join services s on s.id=l.service_id order by l.issued_at desc`);
+ await audit(req,"admin.licenses.view");res.json(rows);
+});
+
+app.post("/api/admin/licenses",auth,adminOnly("licenses.manage"),async(req,res)=>{
+ const {userId,productId,serviceId,orderId,licenseType="platform",scope="Production deployment",maxActivations=1,expiresAt}=req.body||{};
+ if(!userId)return res.status(400).json({error:"Customer is required"});
+ const user=await pool.query("select id from users where id=$1 and role='customer'",[userId]);
+ if(!user.rows[0])return res.status(404).json({error:"Customer not found"});
+ const key=makeLicenseKey();
+ const {rows}=await pool.query("insert into licenses(user_id,service_id,order_id,product_id,license_key,license_type,status,scope,max_activations,expires_at) values($1,$2,$3,$4,$5,$6,'ACTIVE',$7,$8,$9) returning *",[userId,serviceId||null,orderId||null,productId||null,key,licenseType,scope,Math.max(1,Number(maxActivations)||1),expiresAt||null]);
+ await audit(req,"admin.license.create","license",rows[0].id,{user_id:userId});
+ res.status(201).json(rows[0]);
+});
+
+app.patch("/api/admin/licenses/:id",auth,adminOnly("licenses.manage"),async(req,res)=>{
+ const {status,scope,maxActivations,expiresAt}=req.body||{};
+ if(status&&!["ACTIVE","SUSPENDED","REVOKED","EXPIRED"].includes(status))return res.status(400).json({error:"Invalid license status"});
+ const {rows}=await pool.query("update licenses set status=coalesce($1,status),scope=coalesce($2,scope),max_activations=coalesce($3,max_activations),expires_at=coalesce($4,expires_at),revoked_at=case when $1='REVOKED' then now() when $1='ACTIVE' then null else revoked_at end,updated_at=now() where id=$5 returning *",[status||null,scope||null,Number.isInteger(Number(maxActivations))?Math.max(1,Number(maxActivations)):null,expiresAt||null,req.params.id]);
+ if(!rows[0])return res.status(404).json({error:"License not found"});
+ await audit(req,"admin.license.update","license",req.params.id,{status:rows[0].status});res.json(rows[0]);
+});
+
+app.get("/api/admin/activations",auth,adminOnly("activations.read"),async(req,res)=>{
+ const {rows}=await pool.query(`select a.id,a.license_id,a.user_id,a.label,a.fingerprint_hash,a.status,a.activated_at,a.last_seen_at,a.revoked_at,
+ u.name as customer_name,u.email as customer_email,l.license_key from license_activations a join users u on u.id=a.user_id join licenses l on l.id=a.license_id order by a.activated_at desc`);
+ await audit(req,"admin.activations.view");res.json(rows);
+});
+
+app.patch("/api/admin/activations/:id",auth,adminOnly("activations.manage"),async(req,res)=>{
+ const {status}=req.body||{};if(!["ACTIVE","REVOKED"].includes(status))return res.status(400).json({error:"Invalid activation status"});
+ const {rows}=await pool.query("update license_activations set status=$1,revoked_at=case when $1='REVOKED' then now() else null end where id=$2 returning *",[status,req.params.id]);
+ if(!rows[0])return res.status(404).json({error:"Activation not found"});
+ await pool.query("update licenses l set activation_count=(select count(*) from license_activations a where a.license_id=l.id and a.status='ACTIVE'),updated_at=now() where l.id=$1",[rows[0].license_id]);
+ await audit(req,"admin.activation.update","license_activation",rows[0].id,{status});res.json(rows[0]);
+});
+
+app.get("/api/admin/installations",auth,adminOnly("installations.read"),async(req,res)=>{
+ const {rows}=await pool.query(`select i.*,u.name as customer_name,u.email as customer_email,l.license_key from installations i join users u on u.id=i.user_id left join licenses l on l.id=i.license_id order by i.updated_at desc`);
+ await audit(req,"admin.installations.view");res.json(rows);
+});
+
+app.patch("/api/admin/installations/:id",auth,adminOnly("installations.manage"),async(req,res)=>{
+ const {status,version,domain}=req.body||{};if(status&&!["ACTIVE","INACTIVE","SUSPENDED"].includes(status))return res.status(400).json({error:"Invalid installation status"});
+ const {rows}=await pool.query("update installations set status=coalesce($1,status),version=coalesce($2,version),domain=coalesce($3,domain),updated_at=now() where id=$4 returning *",[status||null,version||null,domain||null,req.params.id]);
+ if(!rows[0])return res.status(404).json({error:"Installation not found"});
+ await audit(req,"admin.installation.update","installation",rows[0].id,{status:rows[0].status});res.json(rows[0]);
+});
+
+app.get("/api/licenses",auth,async(req,res)=>{
+ const {rows}=await pool.query("select l.id,l.license_key,l.license_type,l.status,l.scope,l.max_activations,l.activation_count,l.issued_at,l.expires_at,p.name as product_name,s.name as service_name from licenses l left join products p on p.id=l.product_id left join services s on s.id=l.service_id where l.user_id=$1 order by l.issued_at desc",[req.user.id]);
+ res.json(rows);
+});
+
 app.get("/api/services",auth,async(_req,res)=>{
   const {rows}=await pool.query("select * from services order by name");res.json(rows);
 });
