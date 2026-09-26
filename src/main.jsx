@@ -1,6 +1,6 @@
 import React,{useEffect,useState,useRef} from "react";
 import{createRoot}from"react-dom/client";
-import{ArrowRight,Check,Download,KeyRound,Layers3,ShieldCheck,Store,Zap,MonitorCog,Code2,PlaySquare,LayoutDashboard,BriefcaseBusiness,KeyRound as LicenseIcon,DownloadCloud,LifeBuoy,Settings,LogOut,ChevronRight,CreditCard as CreditCardIcon,ChevronDown,PackageCheck,PlugZap,Rocket,Send,Palette,Server,BarChart3,Bell,ShieldAlert,SlidersHorizontal,DatabaseBackup,RefreshCw,ScrollText}from"lucide-react";
+import{ArrowRight,Check,Download,KeyRound,Layers3,ShieldCheck,Store,Zap,MonitorCog,Code2,PlaySquare,LayoutDashboard,BriefcaseBusiness,KeyRound as LicenseIcon,DownloadCloud,LifeBuoy,Settings,LogOut,ChevronRight,CreditCard as CreditCardIcon,ChevronDown,PackageCheck,PlugZap,Rocket,Send,Palette,Server,BarChart3,Bell,ShieldAlert,SlidersHorizontal,DatabaseBackup,RefreshCw,ScrollText,Upload}from"lucide-react";
 import"./styles.css";
 import{api,upload,apiBase,setAuthSession,clearAuthSession,getAuthToken}from"./api.js";
 import {io} from "socket.io-client";
