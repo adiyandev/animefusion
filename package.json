@@ -21,7 +21,8 @@
     "cors": "latest",
     "pg": "latest",
     "socket.io": "latest",
-    "socket.io-client": "latest"
+    "socket.io-client": "latest",
+    "multer": "latest"
   },
   "devDependencies": {}
 }
