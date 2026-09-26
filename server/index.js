@@ -389,13 +389,13 @@ app.post("/api/admin/support/cases/:id/messages",auth,adminOnly("support.manage"
  res.status(201).json(message);
 });
 app.get("/api/admin/analytics",auth,adminOnly("analytics.read"),async(req,res)=>{
- const [totals,events,users,orders]=await Promise.all([
+ const [totals,events,users,orders,daily]=await Promise.all([
   pool.query("select count(*)::int as events,count(distinct user_id)::int as unique_users from analytics_events where created_at>now()-interval '30 days'"),
   pool.query("select event_name,count(*)::int as count from analytics_events where created_at>now()-interval '30 days' group by event_name order by count desc limit 20"),
   pool.query("select count(*)::int as count from users where created_at>now()-interval '30 days'"),
   pool.query("select count(*)::int as count,coalesce(sum(total_cents),0)::bigint as revenue_cents from orders where created_at>now()-interval '30 days' and status in ('approved','paid')"),
   pool.query("select to_char(day,'Mon DD') as day,count(a.id)::int as events from generate_series(current_date-interval '29 days',current_date,interval '1 day') day left join analytics_events a on a.created_at>=day and a.created_at<day+interval '1 day' group by day order by day")
- ]);await audit(req,"admin.analytics.view");res.json({totals:totals.rows[0],events:events.rows,recentCustomers:users.rows[0].count,revenueCents:orders.rows[0].revenue_cents,orders:orders.rows[0].count,daily:orders[1].rows});
+ ]);await audit(req,"admin.analytics.view");res.json({totals:totals.rows[0],events:events.rows,recentCustomers:users.rows[0].count,revenueCents:orders.rows[0].revenue_cents,orders:orders.rows[0].count,daily:daily.rows});
 });
 app.get("/api/admin/notifications",auth,adminOnly("notifications.manage"),async(req,res)=>{const {rows}=await pool.query("select n.*,u.name as customer_name,u.email as customer_email from notifications n join users u on u.id=n.user_id order by n.created_at desc limit 200");res.json(rows);});
 app.post("/api/admin/notifications",auth,adminOnly("notifications.manage"),async(req,res)=>{
