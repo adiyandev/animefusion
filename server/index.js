@@ -480,6 +480,14 @@ app.patch("/api/admin/settings/:key",auth,adminOnly("settings.manage"),async(req
  const {value,secret}=req.body||{};if(value===undefined)return res.status(400).json({error:"value is required"});
  const {rows}=await pool.query("insert into system_settings(key,value,secret,updated_by,updated_at) values($1,$2,coalesce($3,false),$4,now()) on conflict(key) do update set value=excluded.value,secret=excluded.secret,updated_by=excluded.updated_by,updated_at=now() returning key,value,secret,updated_at",[req.params.key,JSON.stringify(value),Boolean(secret),req.user.id]);await audit(req,"setting.update","system_setting",null,{key:req.params.key});res.json({...rows[0],value:rows[0].secret?"[REDACTED]":rows[0].value});
 });
+app.delete("/api/admin/settings/:key",auth,adminOnly("settings.manage"),async(req,res)=>{
+ const key=String(req.params.key||"").trim();
+ if(!key)return res.status(400).json({error:"Setting key is required"});
+ const {rows}=await pool.query("delete from system_settings where key=$1 and secret=false returning key",[key]);
+ if(!rows[0])return res.status(404).json({error:"Editable setting not found"});
+ await audit(req,"setting.delete","system_setting",null,{key});
+ res.json({ok:true,key});
+});
 app.get("/api/admin/backups",auth,adminOnly("backups.read"),async(req,res)=>{const {rows}=await pool.query("select * from backup_jobs order by created_at desc limit 100");res.json(rows);});
 app.post("/api/admin/backups",auth,adminOnly("backups.manage"),async(req,res)=>{const {backupType="database"}=req.body||{};const {rows}=await pool.query("insert into backup_jobs(status,backup_type,created_by) values('queued',$1,$2) returning *",[backupType,req.user.id]);await audit(req,"backup.create","backup_job",rows[0].id);res.status(201).json(rows[0]);});
 app.get("/api/admin/updates",auth,adminOnly("updates.read"),async(req,res)=>{const {rows}=await pool.query("select j.*,r.version as release_version from update_jobs j left join releases r on r.id=j.release_id order by j.created_at desc limit 100");res.json(rows);});
