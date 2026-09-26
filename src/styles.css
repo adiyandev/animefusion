@@ -921,3 +921,14 @@ footer span:hover{color:var(--ink)}
 .adminCustomSettingForm button{white-space:nowrap}
 @media(max-width:850px){.adminSettingsGrid{grid-template-columns:1fr}.adminSettingsAdvanced{grid-column:auto}.adminSettingsRow{grid-template-columns:1fr}.adminSettingsRowActions{justify-content:flex-start}.adminCustomSettingForm{grid-template-columns:1fr}.adminCustomSettingForm label{white-space:normal}.adminSettingsActions{flex-wrap:wrap}}
 @media(max-width:520px){.adminSettingPair{grid-template-columns:1fr}.adminSettingsToolbar>input{min-width:100%}.adminSettingsActions button{flex:1}}
+
+/* Marketplace service section */
+.marketplaceServices{padding-top:86px;padding-bottom:86px}
+.marketplaceServices .cards{margin-top:30px}
+.marketplaceServices .card{display:flex;flex-direction:column;min-height:230px}
+.marketplaceServices .templatePurchase{margin-top:auto;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:10px;font-weight:900;color:inherit}
+.marketServiceCTA{margin-top:26px;padding:22px 24px;border:1px solid var(--line);border-radius:18px;background:#fafafa;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.marketServiceCTA div{display:grid;gap:5px}
+.marketServiceCTA b{font-size:13px}
+.marketServiceCTA span{font-size:10px;color:#8b9199}
+@media(max-width:760px){.marketServiceCTA{align-items:flex-start;flex-direction:column}.marketServiceCTA .primary{width:100%;justify-content:center}}
