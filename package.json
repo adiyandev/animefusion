@@ -22,7 +22,9 @@
     "pg": "latest",
     "socket.io": "latest",
     "socket.io-client": "latest",
-    "multer": "latest"
+    "multer": "latest",
+    "@neondatabase/auth": "latest",
+    "jose": "latest"
   },
   "devDependencies": {}
 }
