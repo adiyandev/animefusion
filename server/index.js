@@ -524,6 +524,16 @@ app.post("/api/admin/notifications",auth,adminOnly("notifications.manage"),async
  const {rows}=await pool.query("insert into notifications(user_id,title,body,type,metadata) values($1,$2,$3,$4,$5) returning *",[userId,title,body,type,JSON.stringify(metadata)]);await audit(req,"notification.create","notification",rows[0].id,{user_id:userId});res.status(201).json(rows[0]);
 });
 app.get("/api/admin/security",auth,adminOnly("security.read"),async(req,res)=>{const {rows}=await pool.query("select s.*,u.name as user_name,u.email from security_events s left join users u on u.id=s.user_id order by s.created_at desc limit 200");res.json(rows);});
+app.get("/api/settings/public",async(req,res)=>{
+ try{
+  const {rows}=await pool.query("select key,value from system_settings where key in ('site_name','brand_logo_url')");
+  const values=Object.fromEntries(rows.map(x=>[x.key,x.value]));
+  res.json({site_name:values.site_name||"AniFuze",brand_logo_url:values.brand_logo_url||""});
+ }catch(error){
+  console.error("Public brand settings failed:",error);
+  res.json({site_name:"AniFuze",brand_logo_url:""});
+ }
+});
 app.get("/api/admin/settings",auth,adminOnly("settings.read"),async(req,res)=>{const {rows}=await pool.query("select key,value,secret,updated_at from system_settings order by key");res.json(rows.map(x=>({...x,value:x.secret?"[REDACTED]":x.value})));});
 app.patch("/api/admin/settings/:key",auth,adminOnly("settings.manage"),async(req,res)=>{
  const {value,secret}=req.body||{};if(value===undefined)return res.status(400).json({error:"value is required"});
