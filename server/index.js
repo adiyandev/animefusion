@@ -2,11 +2,20 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import {promisify} from "node:util";
+import multer from "multer";
 import pg from "pg";
 import {createServer} from "node:http";
 import {Server as SocketIOServer} from "socket.io";
 
 const {Pool}=pg;
+const storageDir=process.env.STORAGE_DIR||"/var/data/animefusion";
+fs.mkdirSync(storageDir,{recursive:true});
+const upload=multer({dest:storageDir,limits:{fileSize:500*1024*1024}});
+const stat=promisify(fs.stat);
+const sha256File=(filePath)=>new Promise((resolve,reject)=>{const h=crypto.createHash("sha256");const s=fs.createReadStream(filePath);s.on("data",chunk=>h.update(chunk));s.on("error",reject);s.on("end",()=>resolve(h.digest("hex")));});
 const app=express();
 const httpServer=createServer(app);
 const io=new SocketIOServer(httpServer,{cors:{origin:"https://adiyandev.github.io",credentials:true,methods:["GET","POST"]}});
@@ -173,8 +182,9 @@ app.patch("/api/admin/orders/:id",auth,adminOnly("orders.manage"),async(req,res)
    if(!existing.rows[0]){
      const key=makeLicenseKey();
      const issued=await pool.query("insert into licenses(user_id,order_id,product_id,license_key,license_type,status,scope,max_activations) values($1,$2,$3,$4,'platform','ACTIVE','Production deployment',1) returning id",[rows[0].user_id,rows[0].id,rows[0].product_id,key]);
-     const release=await pool.query("select id from releases where status='published' order by published_at desc nulls last limit 1");
-     await pool.query("insert into deliveries(user_id,order_id,license_id,release_id,delivery_type,status,metadata) values($1,$2,$3,$4,'release','pending',$5)",[rows[0].user_id,rows[0].id,issued.rows[0].id,release.rows[0]?.id||null,JSON.stringify({product_id:rows[0].product_id})]);
+     const release=await pool.query("select id,storage_key from releases where status='published' order by published_at desc nulls last limit 1");
+     const deliveryStatus=release.rows[0]?.storage_key?"authorized":"pending";
+     await pool.query("insert into deliveries(user_id,order_id,license_id,release_id,delivery_type,status,metadata) values($1,$2,$3,$4,'release',$5,$6)",[rows[0].user_id,rows[0].id,issued.rows[0].id,release.rows[0]?.id||null,deliveryStatus,JSON.stringify({product_id:rows[0].product_id})]);
      await audit(req,"license.auto_issue","license",issued.rows[0].id,{order_id:rows[0].id,user_id:rows[0].user_id});
    }
  }
@@ -284,6 +294,68 @@ app.post("/api/license/heartbeat",auth,async(req,res)=>{
 });
 
 // Phase Four — Platform, Providers, Releases, Delivery & Marketplace
+app.post("/api/admin/releases/upload",auth,adminOnly("releases.manage"),upload.single("file"),async(req,res)=>{
+ if(!req.file)return res.status(400).json({error:"Release installer/package file is required"});
+ const {version,channel="stable",releaseNotes=""}=req.body||{};
+ if(!version?.trim()){try{fs.unlinkSync(req.file.path)}catch{};return res.status(400).json({error:"Version is required"});}
+ if(!["stable","beta","dev"].includes(channel)){try{fs.unlinkSync(req.file.path)}catch{};return res.status(400).json({error:"Invalid release channel"});}
+ try{
+  const checksum=await sha256File(req.file.path);
+  const releaseCode="REL-"+crypto.randomBytes(5).toString("hex").toUpperCase();
+  const extension=path.extname(req.file.originalname||"").toLowerCase();
+  const storageKey=req.file.filename+extension;
+  const finalPath=path.join(storageDir,storageKey);
+  fs.renameSync(req.file.path,finalPath);
+  const {rows}=await pool.query("insert into releases(release_code,version,channel,status,release_notes,checksum_sha256,artifact_name,artifact_size_bytes,storage_key,artifact_url,created_by) values($1,$2,$3,'ready',$4,$5,$6,$7,$8,$9,$10) returning *",[releaseCode,version.trim(),channel,releaseNotes?.trim()||null,checksum,req.file.originalname,req.file.size,storageKey,null,req.user.id]);
+  await audit(req,"admin.release.upload","release",rows[0].id,{release_code:releaseCode,version:rows[0].version,checksum});
+  res.status(201).json(rows[0]);
+ }catch(e){
+  try{if(req.file?.path)fs.unlinkSync(req.file.path)}catch{}
+  console.error("Release upload failed:",e);res.status(500).json({error:"Unable to upload release"});
+ }
+});
+app.get("/api/releases/latest",async(req,res)=>{
+ const {channel="stable"}=req.query;
+ const {rows}=await pool.query("select id,release_code,version,channel,status,release_notes,checksum_sha256,artifact_name,artifact_size_bytes,published_at from releases where status='published' and channel=$1 order by published_at desc nulls last,created_at desc limit 1",[channel]);
+ if(!rows[0])return res.status(404).json({error:"No published release available"});
+ res.json(rows[0]);
+});
+app.post("/api/admin/templates/upload",auth,adminOnly("templates.manage"),upload.single("file"),async(req,res)=>{
+ if(!req.file)return res.status(400).json({error:"Template package file is required"});
+ const {slug,name,description,version="1.0.0",priceCents=0,previewUrl,metadata="{}"}=req.body||{};
+ if(!slug?.trim()||!name?.trim()){try{fs.unlinkSync(req.file.path)}catch{};return res.status(400).json({error:"Slug and name are required"});}
+ let parsedMetadata={};try{parsedMetadata=JSON.parse(metadata||"{}")}catch{try{fs.unlinkSync(req.file.path)}catch{};return res.status(400).json({error:"Metadata must be valid JSON"});}
+ try{
+  const checksum=await sha256File(req.file.path);
+  const templateCode="TPL-"+crypto.randomBytes(5).toString("hex").toUpperCase();
+  const extension=path.extname(req.file.originalname||"").toLowerCase();
+  const storageKey=req.file.filename+extension;
+  const finalPath=path.join(storageDir,storageKey);
+  fs.renameSync(req.file.path,finalPath);
+  const {rows}=await pool.query("insert into templates(template_code,slug,name,description,version,price_cents,preview_url,checksum_sha256,package_name,package_size_bytes,storage_key,metadata) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning *",[templateCode,slug.trim().toLowerCase(),name.trim(),description?.trim()||null,version,Math.max(0,Number(priceCents)||0),previewUrl||null,checksum,req.file.originalname,req.file.size,storageKey,JSON.stringify(parsedMetadata)]);
+  await audit(req,"admin.template.upload","template",rows[0].id,{template_code:templateCode,slug:rows[0].slug,checksum});
+  res.status(201).json(rows[0]);
+ }catch(e){
+  try{if(req.file?.path)fs.unlinkSync(req.file.path)}catch{}
+  if(e.code==="23505")return res.status(409).json({error:"Template slug already exists"});
+  console.error("Template upload failed:",e);res.status(500).json({error:"Unable to upload template"});
+ }
+});
+app.get("/api/deliveries/:id/download",auth,async(req,res)=>{
+ const {rows}=await pool.query(`select d.*,r.storage_key as release_storage_key,r.artifact_name,r.version as release_version,t.storage_key as template_storage_key,t.package_name,t.version as template_version
+ from deliveries d left join releases r on r.id=d.release_id left join templates t on t.id=d.template_id
+ where d.id=$1 and d.user_id=$2 limit 1`,[req.params.id,req.user.id]);
+ const d=rows[0];if(!d)return res.status(404).json({error:"Delivery not found"});
+ if(!["authorized","delivered"].includes(d.status))return res.status(403).json({error:"Delivery is not authorized"});
+ const key=d.release_storage_key||d.template_storage_key;if(!key)return res.status(404).json({error:"Package is not attached to this delivery"});
+ const filePath=path.resolve(storageDir,key);
+ if(!filePath.startsWith(path.resolve(storageDir)+path.sep))return res.status(400).json({error:"Invalid package path"});
+ try{await stat(filePath)}catch{return res.status(404).json({error:"Package file is unavailable"});}
+ await pool.query("update deliveries set status='delivered',downloaded_at=coalesce(downloaded_at,now()) where id=$1",[d.id]);
+ const name=d.artifact_name||d.package_name||("anifuze-"+(d.release_version||d.template_version||"package"));
+ res.download(filePath,name);
+});
+
 app.get("/api/admin/providers",auth,adminOnly("providers.read"),async(req,res)=>{
  const {rows}=await pool.query("select id,slug,name,provider_type,endpoint,priority,enabled,health_status,last_checked_at,created_at,updated_at from providers order by enabled desc,priority asc,name");
  await audit(req,"admin.providers.view");res.json(rows);
@@ -320,7 +392,7 @@ app.post("/api/admin/releases",auth,adminOnly("releases.manage"),async(req,res)=
  try{const {rows}=await pool.query("insert into releases(version,channel,release_notes,artifact_url,checksum_sha256,signature,created_by) values($1,$2,$3,$4,$5,$6,$7) returning *",[version.trim(),channel,releaseNotes?.trim()||null,artifactUrl?.trim()||null,checksumSha256?.trim()||null,signature?.trim()||null,req.user.id]);await audit(req,"admin.release.create","release",rows[0].id);res.status(201).json(rows[0]);}catch(e){if(e.code==="23505")return res.status(409).json({error:"Release version already exists"});res.status(500).json({error:"Unable to create release"});}});
 app.patch("/api/admin/releases/:id",auth,adminOnly("releases.manage"),async(req,res)=>{
  const {status,releaseNotes,artifactUrl,checksumSha256,signature}=req.body||{};if(status&&!["draft","ready","published","revoked"].includes(status))return res.status(400).json({error:"Invalid release status"});
- const {rows}=await pool.query("update releases set status=coalesce($1,status),release_notes=coalesce($2,release_notes),artifact_url=coalesce($3,artifact_url),checksum_sha256=coalesce($4,checksum_sha256),signature=coalesce($5,signature),published_at=case when $1='published' then coalesce(published_at,now()) else published_at end,updated_at=now() where id=$6 returning *",[status||null,releaseNotes??null,artifactUrl??null,checksumSha256??null,signature??null,req.params.id]);
+ if(status==="published"){const current=await pool.query("select storage_key,artifact_url from releases where id=$1",[req.params.id]);if(!current.rows[0])return res.status(404).json({error:"Release not found"});if(!current.rows[0].storage_key&&!current.rows[0].artifact_url)return res.status(400).json({error:"A release must have an uploaded artifact or artifact URL before publishing"});}\n const {rows}=await pool.query("update releases set status=coalesce($1,status),release_notes=coalesce($2,release_notes),artifact_url=coalesce($3,artifact_url),checksum_sha256=coalesce($4,checksum_sha256),signature=coalesce($5,signature),published_at=case when $1='published' then coalesce(published_at,now()) else published_at end,updated_at=now() where id=$6 returning *",[status||null,releaseNotes??null,artifactUrl??null,checksumSha256??null,signature??null,req.params.id]);
  if(!rows[0])return res.status(404).json({error:"Release not found"});await audit(req,"admin.release.update","release",req.params.id,{status:rows[0].status});res.json(rows[0]);
 });
 
@@ -332,7 +404,7 @@ app.patch("/api/admin/templates/:id",auth,adminOnly("templates.manage"),async(re
 
 app.delete("/api/admin/templates/:id",auth,adminOnly("templates.manage"),async(req,res)=>{try{const {rows}=await pool.query("delete from templates where id=$1 returning id,name",[req.params.id]);if(!rows[0])return res.status(404).json({error:"Template not found"});await audit(req,"admin.template.delete","template",req.params.id,{name:rows[0].name});res.json({ok:true,id:rows[0].id});}catch(e){console.error("Template deletion failed:",e);res.status(500).json({error:"Unable to delete template"});}});
 app.get("/api/templates",async(req,res)=>{const {rows}=await pool.query("select id,slug,name,description,version,price_cents,currency,active,presentation_only,preview_url,checksum_sha256,metadata from templates where active=true order by created_at desc");res.json(rows);});
-app.get("/api/deliveries",auth,async(req,res)=>{const {rows}=await pool.query("select d.id,d.delivery_type,d.status,d.created_at,d.downloaded_at,r.version,t.name as template_name from deliveries d left join releases r on r.id=d.release_id left join templates t on t.id=d.template_id where d.user_id=$1 order by d.created_at desc",[req.user.id]);res.json(rows);});
+app.get("/api/deliveries",auth,async(req,res)=>{const {rows}=await pool.query("select d.id,d.delivery_type,d.status,d.created_at,d.downloaded_at,r.id as release_id,r.version,t.name as template_name,t.id as template_id,case when d.status in ('authorized','delivered') and (r.storage_key is not null or t.storage_key is not null) then true else false end as downloadable from deliveries d left join releases r on r.id=d.release_id left join templates t on t.id=d.template_id where d.user_id=$1 order by d.created_at desc",[req.user.id]);res.json(rows);});
 app.post("/api/admin/deliveries/:id/authorize",auth,adminOnly("delivery.manage"),async(req,res)=>{
  const delivery=await pool.query("select * from deliveries where id=$1",[req.params.id]);if(!delivery.rows[0])return res.status(404).json({error:"Delivery not found"});
  const raw=token();const {rows}=await pool.query("update deliveries set status='authorized',download_token_hash=$1,download_expires_at=now()+interval '24 hours' where id=$2 returning id,status,download_expires_at",[hash(raw),req.params.id]);await audit(req,"admin.delivery.authorize","delivery",req.params.id);res.json({...rows[0],downloadToken:raw});
