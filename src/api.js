@@ -18,3 +18,19 @@ export async function api(path,options={}){
   if(!response.ok)throw new Error(data?.error||"Request failed");
   return data;
 }
+
+export async function upload(path,file,fields={}){
+  const form=new FormData();
+  Object.entries(fields).forEach(([key,value])=>{if(value!==undefined&&value!==null)form.append(key,String(value));});
+  form.append("file",file);
+  const token=getAuthToken();
+  const headers={};
+  if(token)headers.Authorization="Bearer "+token;
+  const response=await fetch(API_BASE+"/api"+path,{method:"POST",headers,body:form});
+  const text=await response.text();
+  let data=null;try{data=text?JSON.parse(text):null}catch{data={error:text};}
+  if(!response.ok)throw new Error(data?.error||"Upload failed");
+  return data;
+}
+
+export function apiBase(){return API_BASE;}
