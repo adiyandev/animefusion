@@ -305,8 +305,8 @@ function CustomerDashboard(){
  const [supportCases,setSupportCases]=useState([]);
  const [remoteServices,setRemoteServices]=useState([]);
  const [remoteLicenses,setRemoteLicenses]=useState([]);
- const [remoteOrders,setRemoteOrders]=useState([]);
- useEffect(()=>{if(!getAuthToken())return;Promise.all([api("/me"),api("/services"),api("/licenses"),api("/orders"),api("/support/cases")]).then(([me,services,licenses,orders,cases])=>{setName(me.name||"Customer");setEmail(me.email||"");setProfileName(me.display_name||me.name||"Customer");setProfileEmail(me.email||"");setRemoteServices(services||[]);setRemoteLicenses(licenses||[]);setRemoteOrders(orders||[]);setSupportCases(cases||[]);}).catch(()=>{});},[]);
+ const [remoteOrders,setRemoteOrders]=useState([]),[remoteDeliveries,setRemoteDeliveries]=useState([]);
+ useEffect(()=>{if(!getAuthToken())return;Promise.all([api("/me"),api("/services"),api("/licenses"),api("/orders"),api("/support/cases"),api("/deliveries")]).then(([me,services,licenses,orders,cases,deliveries])=>{setName(me.name||"Customer");setEmail(me.email||"");setProfileName(me.display_name||me.name||"Customer");setProfileEmail(me.email||"");setRemoteServices(services||[]);setRemoteLicenses(licenses||[]);setRemoteOrders(orders||[]);setSupportCases(cases||[]);setRemoteDeliveries(deliveries||[]);}).catch(()=>{});},[]);
  const first=name.split(" ")[0];
  const nav=[["Overview",LayoutDashboard],["Services",BriefcaseBusiness],["Licenses",LicenseIcon],["Installers",DownloadCloud],["Support",LifeBuoy]];
  const saveProfile=async()=>{const nextName=profileName.trim()||"Customer";try{const me=await api("/me",{method:"PUT",body:JSON.stringify({name:nextName,displayName:nextName})});localStorage.setItem("animefusion_customer_name",me.name);localStorage.setItem("animefusion_customer_email",me.email);setName(me.name);setEmail(me.email)}catch(error){alert(error.message||"Unable to save profile")}};
@@ -328,15 +328,8 @@ function CustomerDashboard(){
  };
  const serviceList=remoteServices.map(s=>{const license=remoteLicenses.find(l=>l.service_name===s.name);return{id:s.id,title:s.name,desc:s.description||"AniFuze service",status:s.status,icon:BriefcaseBusiness,product:s.name,version:s.version||"1.0",licenseKey:license?.license_key||"",delivery:s.metadata?.delivery||"Verified package"}});
  const licenseList=remoteLicenses.map(l=>({id:l.id,name:l.service_name||"AniFuze License",type:l.license_type,key:l.license_key,status:l.status,issued:new Date(l.issued_at).toLocaleDateString(),scope:l.scope||"Production deployment",service:l.service_name||"AniFuze"}));
- const installers=[
-  {name:"AniFuze Complete",version:"v1.0",size:"48.2 MB",status:"READY",file:"anifuze-complete-installer-v1.0.txt",contents:"AniFuze Complete installer manifest\nVersion: 1.0\nLicense: ANIFUZE_8K2M7Q4P91\nDelivery: SHA-256 verified"},
-  {name:"AniFuze Admin",version:"v1.0",size:"31.7 MB",status:"READY",file:"anifuze-admin-installer-v1.0.txt",contents:"AniFuze Admin installer manifest\nVersion: 1.0\nLicense: ANIFUZE_3N6VK8DS15QA\nDelivery: Verified package"}
- ];
- const downloadInstaller=(item)=>{
-  const blob=new Blob([item.contents],"text/plain");
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");a.href=url;a.download=item.file;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
- };
+ const installers=remoteDeliveries.filter(d=>d.downloadable).map(d=>({id:d.id,name:d.template_name||"AniFuze Complete",version:d.version||"Latest",size:"Verified package",status:d.status.toUpperCase(),file:d.id}));
+ const downloadInstaller=async(item)=>{try{const response=await fetch(apiBase()+"/api/deliveries/"+item.id+"/download",{headers:{Authorization:"Bearer "+getAuthToken()}});if(!response.ok){const body=await response.json().catch(()=>({}));throw new Error(body.error||"Download failed")}const blob=await response.blob();const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=item.file||"anifuze-package";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){alert(e.message||"Unable to download installer")}};
  const toggleSecret=id=>setShowSecrets(v=>({...v,[id]:!v[id]}));
  const openPage=(next,item=null)=>{setSelected(item);setShowSecrets({});setPage(next)};
  const SettingRow=({icon:Icon,title,children})=><div className="portalSettingRow"><div className="portalSettingIcon"><Icon size={16}/></div><div><b>{title}</b><span>{children}</span></div></div>;
