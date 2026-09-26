@@ -932,3 +932,20 @@ footer span:hover{color:var(--ink)}
 .marketServiceCTA b{font-size:13px}
 .marketServiceCTA span{font-size:10px;color:#8b9199}
 @media(max-width:760px){.marketServiceCTA{align-items:flex-start;flex-direction:column}.marketServiceCTA .primary{width:100%;justify-content:center}}
+
+/* Mobile navigation */
+.navActions{display:flex;align-items:center;gap:10px}
+.navMenu{display:none;width:42px;height:42px;padding:0;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px}
+.navMenu span{display:block;width:18px;height:2px;border-radius:2px;background:#111;transition:transform .2s ease,opacity .2s ease}
+.navMenu.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.navMenu.open span:nth-child(2){opacity:0}
+.navMenu.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+@media(max-width:760px){
+ .navIn{position:relative;flex-wrap:wrap}
+ .navIn>nav{display:none;position:absolute;left:16px;right:16px;top:calc(100% + 8px);z-index:50;flex-direction:column;align-items:stretch;gap:3px;padding:8px;background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 45px rgba(17,24,39,.12)}
+ .navIn>nav.mobileOpen{display:flex}
+ .navIn>nav a{padding:13px 14px;border-radius:10px;font-size:11px}
+ .navIn>nav a:hover{background:#f5f6f7}
+ .navMenu{display:flex}
+ .navCta{display:none!important}
+}
