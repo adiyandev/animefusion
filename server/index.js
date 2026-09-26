@@ -38,7 +38,7 @@ function cloudinaryConfigured(){
 async function uploadImageToCloudinary(file,folder="animefusion"){
   if(!cloudinaryConfigured()) throw new Error("Cloudinary image storage is not configured");
   const timestamp=Math.floor(Date.now()/1000);
-  const safeFolder=String(folder||"animefusion").replace(/[^a-zA-Z0-9/_-]/g,"").replace(/^\\/+|\\/+$/g,"")||"animefusion";
+  const safeFolder=String(folder||"animefusion").replace(/[^a-zA-Z0-9/_-]/g,"").replace(/^\/+|\/+$/g,"")||"animefusion";
   const signature=crypto.createHash("sha1")
     .update(`folder=${safeFolder}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`)
     .digest("hex");
