@@ -574,7 +574,7 @@ footer span:hover{color:var(--ink)}
 .previewHeroGrid p{max-width:570px;color:#68717c;font-size:14px;line-height:1.7;margin:0}
 .previewMeta{display:flex;flex-wrap:wrap;gap:7px;margin-top:23px}
 .previewMeta span{padding:7px 10px;border:1px solid #e5e7eb;border-radius:999px;background:#fafafa;color:#707882;font-size:8px;font-weight:800}
-.previewMini{min-height:285px;border:1px solid #dfe3e7;border-radius:20px;background:#fff;box-shadow:0 24px 60px rgba(17,24,39,.12);padding:16px;overflow:hidden}
+.previewMini{width:100%;aspect-ratio:16/10;min-height:0;border:1px solid #dfe3e7;border-radius:20px;background:#fff;box-shadow:0 24px 60px rgba(17,24,39,.12);padding:10px;overflow:hidden}.previewRealMini{position:relative;display:flex;align-items:stretch;justify-content:center}.previewRealMini img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:13px}.previewRealMini .previewNoImage{width:100%;height:100%;display:grid;place-items:center;border-radius:13px;background:#f4f5f6;color:#8a9199;font-size:9px;font-weight:800;text-align:center;padding:20px}
 .previewMini .tvTop{display:flex;justify-content:space-between;font-size:8px;font-weight:900;color:#747c86}
 .previewMini .tvContent{height:170px;margin-top:20px;display:grid;grid-template-columns:1.6fr .7fr;gap:10px}
 .previewMini .tvContent i:first-child{grid-row:span 2}
