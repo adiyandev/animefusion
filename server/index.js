@@ -126,6 +126,29 @@ app.get("/health",async(_req,res)=>{
   catch(error){res.status(503).json({ok:false,service:"anifuze-api",database:"unavailable",error:error.message});}
 });
 
+app.get("/api/auth/config",async(_req,res)=>{res.json({authUrl:String(process.env.AUTH_URL||"").replace(/\/$/,"")});});
+app.post("/api/auth/neon/exchange",async(req,res)=>{
+ const tokenValue=String(req.body?.token||"").trim();
+ const authUrl=String(process.env.AUTH_URL||"").replace(/\/$/,"");
+ if(!authUrl)return res.status(503).json({error:"Neon Auth is not configured"});
+ if(!tokenValue)return res.status(400).json({error:"Neon Auth token is required"});
+ try{
+  const jwksUrl=String(process.env.AUTH_JWKS_URL||authUrl+"/.well-known/jwks.json");
+  const {createRemoteJWKSet,jwtVerify}=await import("jose");
+  const jwks=createRemoteJWKSet(new URL(jwksUrl));
+  const {payload}=await jwtVerify(tokenValue,jwks);
+  const email=String(payload.email||"").trim().toLowerCase();
+  const subject=String(payload.sub||"").trim();
+  if(!email||!subject)return res.status(401).json({error:"Invalid Neon Auth identity"});
+  const name=String(payload.name||email.split("@")[0]||"Customer").trim();
+  let {rows}=await pool.query("select id,name,email,role,created_at from users where email=$1",[email]);
+  let user=rows[0];
+  if(!user){const inserted=await pool.query("insert into users(name,email,password_hash) values($1,$2,$3) returning id,name,email,role,created_at",[name,email,hash(token())]);user=inserted.rows[0];await pool.query("insert into profiles(user_id,display_name) values($1,$2) on conflict(user_id) do nothing",[user.id,name]);}
+  const raw=token();
+  await pool.query("insert into sessions(user_id,token_hash,expires_at,last_seen_at) values($1,$2,now()+make_interval(days=>30),now())",[user.id,hash(raw)]);
+  res.json({token:raw,user});
+ }catch(error){console.error("Neon Auth exchange failed:",error);res.status(401).json({error:"Unable to verify Neon Auth session"});}
+});
 app.post("/api/auth/signup",async(req,res)=>{
   const {name,email,password}=req.body||{};
   if(!name||!email||!password||password.length<8)return res.status(400).json({error:"Name, email and an 8+ character password are required"});
