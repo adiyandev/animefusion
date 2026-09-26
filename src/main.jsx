@@ -315,7 +315,7 @@ function CustomerDashboard(){
  const updateSupport=async(id,patch)=>{try{const q=await api("/admin/support/cases/"+id,{method:"PATCH",body:JSON.stringify(patch)});setSupportCases(v=>v.map(c=>c.id===id?{...c,...q}:c))}catch(e){alert(e.message||"Unable to update case")}};
  const sendSupport=async(id,body)=>{try{const q=await api("/admin/support/cases/"+id+"/messages",{method:"POST",body:JSON.stringify({body})});setSupportMessages(v=>v.some(x=>x.id===q.id)?v:[...v,q])}catch(e){alert(e.message||"Unable to send message")}};
  const logout=async()=>{try{await api("/auth/logout",{method:"POST"})}catch{}clearAuthSession();localStorage.removeItem("animefusion_mock_auth");localStorage.removeItem("animefusion_customer_name");localStorage.removeItem("animefusion_customer_email");localStorage.removeItem("animefusion_customer_avatar");window.location.hash="/auth";window.dispatchEvent(new PopStateEvent("popstate"))};
- const goSupport=()=>{window.history.pushState({},"",APP_BASE+"/support");window.dispatchEvent(new PopStateEvent("popstate"))};
+ const goSupport=()=>{window.history.pushState({},"","#/support");window.dispatchEvent(new PopStateEvent("popstate"))};
  const copy={
   Overview:["Your workspace at a glance.","Monitor your package, licenses, delivery and support."],
   Settings:["Account settings.","Manage account details, preferences, payment methods and billing history."],
