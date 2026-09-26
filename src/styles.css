@@ -864,3 +864,58 @@ footer span:hover{color:var(--ink)}
 .adminDanger{color:#b42318!important;border-color:#f0c7c4!important;background:#fff!important}
 @media(max-width:800px){.adminProductForm{grid-template-columns:1fr 1fr}.adminProductForm textarea,.adminProductForm .adminUpload{grid-column:1/-1}}
 @media(max-width:520px){.adminProductForm{grid-template-columns:1fr}}
+
+/* Fully functional admin settings center */
+.adminSettingsModule{animation:adminRise .45s cubic-bezier(.2,.75,.2,1) both}
+.adminSettingsActions{display:flex;gap:8px;align-items:center}
+.adminSettingsActions button,.adminSettingsToolbar button,.adminSettingsImport{display:inline-flex;align-items:center;gap:7px;border:1px solid #e1e5e9;background:#fff;color:#344054;border-radius:10px;padding:9px 12px;font-size:10px;font-weight:800;cursor:pointer}
+.adminSettingsActions .adminApprove{background:#111827;color:#fff;border-color:#111827}
+.adminSettingsNotice{display:flex;align-items:center;gap:9px;margin:16px 0;padding:11px 13px;border:1px solid #dce8e1;background:#f7fbf8;color:#344054;border-radius:12px;font-size:11px;font-weight:700}
+.adminSettingsToolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0 16px}
+.adminSettingsToolbar>input{flex:1;min-width:220px;border:1px solid #e1e5e9;border-radius:10px;padding:10px 12px;background:#fff;font:inherit;font-size:11px;outline:none}
+.adminSettingsToolbar select{border:1px solid #e1e5e9;border-radius:10px;padding:10px 12px;background:#fff;font-size:10px;font-weight:700}
+.adminSettingsImport{position:relative;overflow:hidden}
+.adminSettingsImport input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.adminSettingsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.adminSettingsCard{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:20px;box-shadow:0 5px 20px rgba(17,24,39,.035)}
+.adminSettingsCardHead{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:17px}
+.adminSettingsCardHead>svg{color:#98a2b3;flex:none}
+.adminSettingsCardHead span{font-size:9px;letter-spacing:.14em;font-weight:900;color:#8a93a1}
+.adminSettingsCardHead h3{margin:6px 0 5px;font-size:17px}
+.adminSettingsCardHead p{margin:0;color:#7a8390;font-size:11px;line-height:1.55}
+.adminSettingToggle{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:13px 0;border-top:1px solid #eef0f3}
+.adminSettingToggle:first-of-type{border-top:0}
+.adminSettingToggle b,.adminSettingToggle span{display:block}
+.adminSettingToggle b{font-size:11px}
+.adminSettingToggle span{margin-top:4px;color:#7b8490;font-size:10px;line-height:1.45}
+.adminSettingToggle button{width:42px;height:24px;border:0;border-radius:999px;background:#dfe3e8;padding:3px;cursor:pointer;transition:background .18s ease}
+.adminSettingToggle button i{display:block;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:transform .18s ease}
+.adminSettingToggle button.on{background:#111827}
+.adminSettingToggle button.on i{transform:translateX(18px)}
+.adminSettingField{display:flex;flex-direction:column;gap:7px;margin:12px 0}
+.adminSettingField>span{font-size:10px;font-weight:800;color:#5d6673}
+.adminSettingField input,.adminSettingField select,.adminSettingField textarea{width:100%;box-sizing:border-box;border:1px solid #e1e5e9;border-radius:10px;background:#fbfcfd;padding:10px 11px;font:inherit;font-size:11px;outline:none}
+.adminSettingField textarea{min-height:82px;resize:vertical;line-height:1.5}
+.adminSettingField input:focus,.adminSettingField select:focus,.adminSettingField textarea:focus,.adminSettingsToolbar>input:focus{border-color:#c4cad2;box-shadow:0 0 0 4px rgba(17,24,39,.035)}
+.adminSettingPair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.adminSettingSecurityNote{display:flex;gap:8px;align-items:flex-start;margin-top:15px;padding:11px;border-radius:10px;background:#f7f8fa;color:#707987;font-size:10px;line-height:1.5}
+.adminSettingsAdvanced{grid-column:1/-1;margin-top:14px}
+.adminSettingsTable{border:1px solid #eef0f3;border-radius:12px;overflow:hidden}
+.adminSettingsRow{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(240px,1.5fr) auto;gap:12px;align-items:center;padding:12px 13px;border-top:1px solid #eef0f3}
+.adminSettingsRow:first-child{border-top:0}
+.adminSettingsRow.dirty{background:#fffaf5}
+.adminSettingsRow>div:first-child b,.adminSettingsRow>div:first-child span{display:block}
+.adminSettingsRow>div:first-child b{font-size:10px;word-break:break-word}
+.adminSettingsRow>div:first-child span{margin-top:4px;color:#8a93a1;font-size:8px}
+.adminSettingsRow textarea{width:100%;min-height:58px;box-sizing:border-box;border:1px solid #e1e5e9;border-radius:8px;padding:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;resize:vertical;outline:none;background:#fbfcfd}
+.adminSettingsRow code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#98a2b3;font-size:10px}
+.adminSettingsRowActions{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.adminSettingsRowActions button{border:1px solid #e1e5e9;background:#fff;border-radius:8px;padding:7px 9px;font-size:9px;font-weight:800;cursor:pointer}
+.adminSettingsRowActions button:disabled{opacity:.4;cursor:not-allowed}
+.adminProtected{display:inline-flex;align-items:center;gap:5px;color:#7b8490;font-size:9px;font-weight:800;white-space:nowrap}
+.adminCustomSettingForm{display:grid;grid-template-columns:1fr 1.5fr auto auto;gap:9px;align-items:center}
+.adminCustomSettingForm input:not([type="checkbox"]){border:1px solid #e1e5e9;border-radius:9px;padding:10px;font:inherit;font-size:10px;min-width:0}
+.adminCustomSettingForm label{font-size:9px;font-weight:700;white-space:nowrap}
+.adminCustomSettingForm button{white-space:nowrap}
+@media(max-width:850px){.adminSettingsGrid{grid-template-columns:1fr}.adminSettingsAdvanced{grid-column:auto}.adminSettingsRow{grid-template-columns:1fr}.adminSettingsRowActions{justify-content:flex-start}.adminCustomSettingForm{grid-template-columns:1fr}.adminCustomSettingForm label{white-space:normal}.adminSettingsActions{flex-wrap:wrap}}
+@media(max-width:520px){.adminSettingPair{grid-template-columns:1fr}.adminSettingsToolbar>input{min-width:100%}.adminSettingsActions button{flex:1}}
