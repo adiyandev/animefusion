@@ -31,6 +31,31 @@ const corsOptions={
 app.use(cors(corsOptions));
 app.use(express.json({limit:"2mb"}));
 
+function cloudinaryConfigured(){
+  return Boolean(process.env.CLOUDINARY_CLOUD_NAME&&process.env.CLOUDINARY_API_KEY&&process.env.CLOUDINARY_API_SECRET);
+}
+
+async function uploadImageToCloudinary(file,folder="animefusion"){
+  if(!cloudinaryConfigured()) throw new Error("Cloudinary image storage is not configured");
+  const timestamp=Math.floor(Date.now()/1000);
+  const safeFolder=String(folder||"animefusion").replace(/[^a-zA-Z0-9/_-]/g,"").replace(/^\\/+|\\/+$/g,"")||"animefusion";
+  const signature=crypto.createHash("sha1")
+    .update(`folder=${safeFolder}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`)
+    .digest("hex");
+  const body=new FormData();
+  body.append("file",new Blob([fs.readFileSync(file.path)],{type:file.mimetype||"application/octet-stream"}),file.originalname);
+  body.append("api_key",process.env.CLOUDINARY_API_KEY);
+  body.append("timestamp",String(timestamp));
+  body.append("folder",safeFolder);
+  body.append("signature",signature);
+  const response=await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(process.env.CLOUDINARY_CLOUD_NAME)}/image/upload`,{method:"POST",body});
+  const data=await response.json();
+  if(!response.ok||!data.secure_url) throw new Error(data.error?.message||"Cloudinary upload failed");
+  return {secureUrl:data.secure_url,publicId:data.public_id,width:data.width,height:data.height,bytes:data.bytes,format:data.format};
+}
+
+
+
 const hash=(value)=>crypto.createHash("sha256").update(value).digest("hex");
 const token=()=>crypto.randomBytes(32).toString("hex");
 
@@ -116,6 +141,20 @@ app.post("/api/auth/login",async(req,res)=>{
 
 app.post("/api/auth/logout",auth,async(req,res)=>{
   await pool.query("delete from sessions where token_hash=$1",[hash(req.token)]);res.status(204).end();
+});
+
+app.post("/api/media/images",auth,upload.single("file"),async(req,res)=>{
+  if(!req.file)return res.status(400).json({error:"Image file is required"});
+  if(!String(req.file.mimetype||"").startsWith("image/")){try{fs.unlinkSync(req.file.path)}catch{};return res.status(400).json({error:"Only image files are allowed"});}
+  try{
+    const folder=String(req.body?.folder||"animefusion/user-uploads");
+    const result=await uploadImageToCloudinary(req.file,folder);
+    await audit(req,"media.image.upload","cloudinary_asset",null,{folder,public_id:result.publicId,width:result.width,height:result.height});
+    res.json(result);
+  }catch(e){
+    console.error("Cloudinary image upload failed:",e);
+    res.status(500).json({error:e.message||"Unable to upload image"});
+  }finally{try{fs.unlinkSync(req.file.path)}catch{}}
 });
 
 app.put("/api/me",auth,async(req,res)=>{const {name,displayName,bio,avatarUrl,bannerUrl,preferences}=req.body||{};const nextName=String(name||req.user.name).trim();await pool.query("update users set name=$1,updated_at=now() where id=$2",[nextName,req.user.id]);await pool.query("insert into profiles(user_id,display_name,bio,avatar_url,banner_url,preferences) values($1,$2,$3,$4,$5,$6) on conflict(user_id) do update set display_name=excluded.display_name,bio=excluded.bio,avatar_url=excluded.avatar_url,banner_url=excluded.banner_url,preferences=excluded.preferences,updated_at=now()",[req.user.id,displayName||nextName,bio||null,avatarUrl||null,bannerUrl||null,preferences||{}]);const {rows}=await pool.query("select u.id,u.name,u.email,u.role,u.created_at,p.display_name,p.avatar_url,p.banner_url,p.bio,p.preferences from users u left join profiles p on p.user_id=u.id where u.id=$1",[req.user.id]);res.json(rows[0]);});
