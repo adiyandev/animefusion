@@ -4,6 +4,7 @@ import cors from "cors";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import {promisify} from "node:util";
 import multer from "multer";
 import pg from "pg";
@@ -11,8 +12,15 @@ import {createServer} from "node:http";
 import {Server as SocketIOServer} from "socket.io";
 
 const {Pool}=pg;
-const storageDir=process.env.STORAGE_DIR||"/var/data/animefusion";
-fs.mkdirSync(storageDir,{recursive:true});
+let storageDir=process.env.STORAGE_DIR||"/var/data/animefusion";
+try{
+  fs.mkdirSync(storageDir,{recursive:true});
+}catch(error){
+  if(error?.code!=="EACCES"&&error?.code!=="EROFS")throw error;
+  storageDir=path.join(os.tmpdir(),"animefusion");
+  fs.mkdirSync(storageDir,{recursive:true});
+  console.warn("STORAGE_DIR is not writable; using temporary storage at "+storageDir+". Configure a writable persistent Render disk for package storage.");
+}
 const upload=multer({dest:storageDir,limits:{fileSize:500*1024*1024}});
 const stat=promisify(fs.stat);
 const sha256File=(filePath)=>new Promise((resolve,reject)=>{const h=crypto.createHash("sha256");const s=fs.createReadStream(filePath);s.on("data",chunk=>h.update(chunk));s.on("error",reject);s.on("end",()=>resolve(h.digest("hex")));});
