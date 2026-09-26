@@ -116,6 +116,11 @@ io.on("connection",socket=>{
  socket.on("typing:stop",caseId=>{if(caseId)socket.to("case:"+caseId).emit("typing:stop",{userId:socket.user.id});});
 });
  
+app.get("/api/health",async(_req,res)=>{
+  try{await pool.query("select 1");res.json({ok:true,service:"anifuze-api",database:"connected"});}
+  catch(error){res.status(503).json({ok:false,service:"anifuze-api",database:"unavailable",error:error.message});}
+});
+
 app.get("/health",async(_req,res)=>{
   try{await pool.query("select 1");res.json({ok:true,service:"anifuze-api",database:"connected"});}
   catch(error){res.status(503).json({ok:false,service:"anifuze-api",database:"unavailable",error:error.message});}
